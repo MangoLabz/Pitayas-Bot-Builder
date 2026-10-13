@@ -503,7 +503,308 @@
             border-radius: 50%;
         }
 
+        
+        .dbb-add-port-btn {
+            font-size: 11px;
+            color: #5865f2;
+            padding: 4px 8px;
+            margin-top: 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            background: rgba(88, 101, 242, 0.1);
+            border: 1px dashed rgba(88, 101, 242, 0.4);
+            text-align: right;
+            transition: all 120ms ease;
+            user-select: none;
+            display: inline-block;
+            align-self: flex-end;
+        }
+        .dbb-add-port-btn:hover {
+            background: rgba(88, 101, 242, 0.25);
+            border-color: #5865f2;
+            color: #fff;
+        }
+        .port-remove-btn {
+            color: #ed4245;
+            font-size: 10px;
+            margin-right: 4px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 120ms ease;
+        }
+        .port-remove-btn:hover {
+            opacity: 1;
+        }
+
         /* ═══════════════ CANVAS ═══════════════ */
+        
+        /* ═══════════════ PRAWY PANEL: URUCHOMIONE BOTY (MULTI-BOT) ═══════════════ */
+        .right-projects-panel {
+            width: 310px;
+            min-width: 250px;
+            max-width: 480px;
+            background: #14151c;
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            position: relative;
+            transition: width var(--transition-fast), transform var(--transition-fast);
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .right-projects-panel.collapsed {
+            width: 0 !important;
+            min-width: 0 !important;
+            max-width: 0 !important;
+            border-left: none !important;
+            overflow: hidden !important;
+        }
+
+        .right-panel-resizer {
+            width: 5px;
+            cursor: col-resize;
+            background: transparent;
+            position: relative;
+            z-index: 15;
+            flex-shrink: 0;
+            transition: background 150ms ease;
+        }
+        .right-panel-resizer:hover, .right-panel-resizer.active {
+            background: #5865f2;
+        }
+
+        .right-panel-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+        }
+
+        .right-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .running-count-badge {
+            background: #5865f2;
+            color: #fff;
+            font-size: 10px;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00b894;
+            box-shadow: 0 0 8px #00b894;
+            animation: pulse-dot-anim 1.6s infinite ease-in-out;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse-dot-anim {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 12px #00b894; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        .running-bots-list {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .running-bot-card {
+            background: #1b1c26;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+            transition: all 180ms ease;
+            position: relative;
+        }
+
+        .running-bot-card.active-editor {
+            border-color: #5865f2;
+            box-shadow: 0 0 0 1px #5865f2, 0 4px 14px rgba(88, 101, 242, 0.25);
+        }
+
+        .running-bot-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .bot-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .bot-card-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .bot-card-status-pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0, 184, 148, 0.15);
+            color: #00b894;
+            border: 1px solid rgba(0, 184, 148, 0.3);
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .bot-card-meta {
+            font-size: 11px;
+            color: #8c909e;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .bot-card-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .bot-card-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #c9ccd6;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 140ms ease;
+        }
+
+        .bot-card-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .bot-card-btn.danger {
+            background: rgba(231, 76, 60, 0.15);
+            border-color: rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+        }
+
+        .bot-card-btn.danger:hover {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .bot-card-btn.primary {
+            background: rgba(88, 101, 242, 0.2);
+            border-color: rgba(88, 101, 242, 0.4);
+            color: #7983f5;
+        }
+
+        .bot-card-btn.primary:hover {
+            background: #5865f2;
+            color: #fff;
+        }
+
+        .quick-launch-section {
+            padding: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .quick-launch-label {
+            font-size: 11px;
+            color: #8c909e;
+            font-weight: 600;
+        }
+
+        .quick-launch-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .quick-launch-row select {
+            flex: 1;
+            background: #101117;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border-radius: 6px;
+            padding: 4px 8px;
+        }
+
+        .console-tabs {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            overflow-x: auto;
+            max-width: 55%;
+        }
+
+        .console-tab-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #8c909e;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 140ms ease;
+        }
+
+        .console-tab-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .console-tab-btn.active {
+            background: #5865f2;
+            border-color: #7983f5;
+            color: #fff;
+            font-weight: 600;
+        }
+
         .canvas-area {
             flex: 1;
             position: relative;
@@ -517,6 +818,9 @@
             inset: 0;
             pointer-events: none;
             z-index: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+            will-change: background-position, background-size;
         }
 
         .canvas-content {
@@ -1028,6 +1332,81 @@
             letter-spacing: 0.6px;
             color: var(--text-muted);
             font-weight: 600;
+        }
+
+        
+        /* Multi-line auto-grow textarea dla pól tekstowych */
+        textarea.dbb-textarea {
+            width: 100%;
+            min-height: 58px;
+            max-height: 350px;
+            padding: 8px 10px;
+            background: var(--bg-overlay);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            resize: vertical;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+            box-sizing: border-box;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        textarea.dbb-textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        /* Drag & Drop w drzewie workspace'ów */
+        .ws-item.dragging {
+            opacity: 0.4;
+            border: 1px dashed var(--accent);
+        }
+        .folder-header.drag-over, .ws-item.drag-over, .ws-root-dropzone.drag-over {
+            border-color: #5865f2 !important;
+            background: rgba(88, 101, 242, 0.2) !important;
+            box-shadow: 0 0 8px rgba(88, 101, 242, 0.4);
+        }
+        .ws-root-dropzone {
+            padding: 8px 12px;
+            margin: 6px 8px;
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            transition: all 150ms ease;
+            cursor: pointer;
+        }
+        .ws-root-dropzone:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+
+        /* Lista dostępnych projektów do uruchomienia w prawym panelu */
+        .available-projects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .available-proj-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            font-size: 11px;
+            color: #c9ccd6;
+            transition: all 140ms ease;
+        }
+        .available-proj-row:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
         }
 
         .dbb-input, .dbb-select {
@@ -1551,7 +1930,7 @@
             flex-shrink: 0;
         }
 
-        .dbb-dock-workspaces {
+        .dbb-dock-projects {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1559,8 +1938,112 @@
             width: 100%;
             overflow-y: auto;
             overflow-x: hidden;
-            max-height: calc(100vh - 220px);
+            max-height: calc(100vh - 160px);
             padding: 2px 0;
+        }
+
+        .dbb-dock-projects::-webkit-scrollbar {
+            display: none;
+        }
+
+        .dbb-dock-proj-btn {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid transparent;
+            color: #b5bac1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .dbb-dock-proj-btn:hover {
+            border-radius: 10px;
+            transform: scale(1.05);
+            color: #fff;
+        }
+
+        .dbb-dock-proj-btn.active {
+            border-radius: 10px;
+            border-color: #fff;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        }
+
+        .dbb-dock-proj-btn.active::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: #fff;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .dock-proj-avatar {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .dock-proj-running-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #23a55a;
+            border: 2px solid #14151c;
+            box-shadow: 0 0 6px rgba(35, 165, 90, 0.8);
+        }
+
+        .dock-proj-close {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 15px;
+            height: 15px;
+            background: #ed4245;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 9px;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            transition: transform 120ms ease;
+            z-index: 5;
+        }
+
+        .dbb-dock-proj-btn:hover .dock-proj-close {
+            display: flex;
+        }
+
+        .dock-proj-close:hover {
+            transform: scale(1.2);
+            background: #c0392b;
+        }
+
+        .dbb-dock-workspaces {
+            display: none;
         }
 
         .dbb-dock-workspaces::-webkit-scrollbar {
@@ -2098,9 +2581,9 @@
         <div class="dbb-dock">
             <button class="dbb-dock-btn active" id="dockBtnHome" onclick="switchView('home')" title="Home (Start)"><span style="font-size:20px;">🏠</span></button>
             <div class="dbb-dock-divider"></div>
-            <!-- Ikony dla każdego otwartego kodu / workspace -->
-            <div class="dbb-dock-workspaces" id="dockOpenWorkspaces"></div>
-            <button class="dbb-dock-btn" onclick="openModal('modalNewWorkspace')" title="Nowy Workspace" style="font-size:16px; opacity:0.75;">＋</button>
+            <!-- Załadowane boty (projekty) po boku jak na Discordzie -->
+            <div class="dbb-dock-projects" id="dockLoadedProjects"></div>
+            <button class="dbb-dock-btn" onclick="openProjectDialog()" title="Dodaj / Załaduj bota do paska (Open Project)" style="font-size:16px; opacity:0.75; font-weight:bold;">＋</button>
             <div class="dbb-dock-bottom">
                 <button class="dbb-dock-btn" onclick="openWorkspaceCodeModal()" title="Kopiuj / Wklej Kod Workspace (Schowek/Plik)"><span style="font-size:18px;">📋</span></button>
                 <button class="dbb-dock-btn" onclick="openModal('modalSettings')" title="Ustawienia"><span style="font-size:18px;">⚙️</span></button>
@@ -2187,6 +2670,10 @@
                         </button>
                         <button class="btn btn-save" onclick="saveToDisk()">
                             <span>💾</span> Zapisz
+                        </button>
+                        <button class="btn" id="btnToggleRunningBots" onclick="toggleRightPanel()" title="Pokaż / Ukryj panel uruchomionych botów po prawej" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);">
+                            <span class="pulse-dot" id="topbarRunningDot" style="display:none; width:7px; height:7px;"></span>
+                            <span id="topbarRunningText">⚡ Boty (0)</span>
                         </button>
                     </div>
                 </div>
@@ -2394,6 +2881,27 @@
         </div>
     </div>
 
+    <!-- Modal: Move Workspace to Folder -->
+    <div class="dbb-modal-overlay" id="modalMoveWorkspace">
+        <div class="dbb-modal-card" style="width: 420px;">
+            <div class="dbb-modal-header">
+                <span class="dbb-modal-title">📁 Przenieś Workspace</span>
+                <button class="dbb-modal-close" onclick="closeModal('modalMoveWorkspace')">✕</button>
+            </div>
+            <div class="dbb-modal-body" style="display:flex; flex-direction:column; gap:12px;">
+                <div style="font-size:12px; color:var(--text-secondary);">
+                    Wybierz folder docelowy dla workspace'a <strong id="moveWsTargetTitle" style="color:#fff;"></strong>:
+                </div>
+                <div id="moveWsDestinationsList" style="display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto;">
+                    <!-- dynamic destinations -->
+                </div>
+            </div>
+            <div class="dbb-modal-footer">
+                <button class="btn-modal-cancel" onclick="closeModal('modalMoveWorkspace')">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Settings -->
     <div class="dbb-modal-overlay" id="modalSettings">
         <div class="dbb-modal-card">
@@ -2402,9 +2910,30 @@
                 <button class="dbb-modal-close" onclick="closeModal('modalSettings')">✕</button>
             </div>
             <div class="dbb-modal-body">
-                <div style="font-size:13px; color:#c9ccd6;">
-                    <p><strong>Discord Bot Builder Linux Alternative UI</strong></p>
-                    <p style="margin-top:6px; color:#8c909e;">Kompatybilność z blokami i plikami workspaces.json DBB v1.0.0-preview.6</p>
+                <div style="font-size:13px; color:#c9ccd6; display:flex; flex-direction:column; gap:14px;">
+                    <div>
+                        <div style="font-weight:700; font-size:15px; color:#fff;">Mango Bot Builder</div>
+                        <div style="font-size:12px; color:#8c909e; margin-top:3px;">Zaawansowany edytor wizualny botów Discord dla systemów Linux (Fedora / Nobara)</div>
+                        <div style="font-size:11px; color:#5865f2; margin-top:2px;">Wersja: <span id="appCurrentVersionText">1.0.0</span></div>
+                    </div>
+
+                    <div style="background:#181922; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-weight:600; font-size:13px; color:#fff;">Aktualizacje z GitHub</div>
+                                <div style="font-size:11px; color:#8c909e;" id="updateStatusText">Sprawdź dostępność nowszych wersji z repozytorium</div>
+                            </div>
+                            <button class="btn btn-primary" id="btnCheckUpdate" onclick="checkForAppUpdates()" style="padding:6px 14px; font-size:12px;">Sprawdź</button>
+                        </div>
+                        <div id="updateDetailsBox" style="margin-top:10px; display:none; border-top:1px solid rgba(255,255,255,0.08); padding-top:10px;">
+                            <div id="updateInfoMsg" style="font-size:12px; margin-bottom:8px;"></div>
+                            <button class="btn btn-success" id="btnApplyUpdate" onclick="applyAppUpdate()" style="display:none; padding:6px 14px; font-size:12px; background:#23a55a;">Zainstaluj aktualizację (Git Pull)</button>
+                        </div>
+                    </div>
+
+                    <div style="font-size:11px; color:#8c909e; line-height:1.5;">
+                        Repozytorium: <a href="https://github.com/MangoLabz/Mango-Bot-Builder" target="_blank" style="color:#5865f2; text-decoration:none;">github.com/MangoLabz/Mango-Bot-Builder</a>
+                    </div>
                 </div>
             </div>
             <div class="dbb-modal-footer">
@@ -2421,6 +2950,7 @@
                 <span id="consoleDot" class="console-dot"></span>
                 Konsola Bota
             </div>
+            <div class="console-tabs" id="consoleTabs"></div>
             <div style="display:flex; gap: 6px; align-items:center;">
                 <button class="btn-icon" onclick="clearConsole()" title="Wyczyść konsolę">🗑</button>
                 <button class="btn-icon" onclick="toggleConsole()" title="Zamknij">✕</button>
@@ -2449,6 +2979,8 @@
         let selectedNodeIdx = null;
         let isBotRunning = false;
         let currentProjectName = null;
+        let currentProjectDir = null;
+        let loadedProjectPaths = [];
 
         let panX = 0, panY = 0;
         let zoomScale = 1;
@@ -2514,15 +3046,25 @@
             try {
                 const path = require('path');
                 const fs = require('fs');
-                const filePath = path.join(__dirname, '..', 'blocks', `${block.name}.js`);
-                if (fs.existsSync(filePath)) {
+                // Sprawdź ścieżki: najpierw w bieżącym projekcie, potem w builderze
+                const searchPaths = [];
+                if (currentProjectDir) searchPaths.push(path.join(currentProjectDir, 'blocks', `${block.name}.js`));
+                searchPaths.push(path.join(__dirname, 'blocks', `${block.name}.js`));
+                searchPaths.push(path.join(__dirname, '..', 'blocks', `${block.name}.js`));
+
+                const filePath = searchPaths.find(p => fs.existsSync(p));
+                if (filePath) {
                     delete require.cache[require.resolve(filePath)];
                     const mod = require(filePath);
                     const resolveProp = (p, data) => {
                         if (Array.isArray(p)) return p;
                         if (typeof p === 'function') {
-                            const res = p(data);
-                            return Array.isArray(res) ? res : [];
+                            try {
+                                const res = p(data);
+                                return Array.isArray(res) ? res : [];
+                            } catch(err) {
+                                return [];
+                            }
                         }
                         return [];
                     };
@@ -2564,13 +3106,24 @@
             const res = await ipcRenderer.invoke('switch-project', projectName);
             if (res.ok) {
                 showToast(`Przełączono na projekt: "${res.current}"`, 'info');
+                currentProjectDir = res.path;
+                currentProjectName = res.current;
                 currentWorkspace = null;
                 selectedNodeIdx = null;
                 openWorkspaceIds = [];
                 rawWorkspacesData = await ipcRenderer.invoke('load-workspaces');
                 renderWorkspacesTree();
                 findAndActivateDefaultWorkspace();
+                if (!loadedProjectPaths.includes(res.path)) {
+                    loadedProjectPaths.push(res.path);
+                }
+                loadedProjectPaths = [...new Set(loadedProjectPaths.filter(Boolean))];
+                try {
+                    localStorage.setItem('dbb_loaded_projects', JSON.stringify(loadedProjectPaths));
+                } catch(e) {}
+                renderDockProjects();
                 await loadProjectsList();
+                await loadRunningBotsList();
             } else {
                 showToast(`Błąd: ${res.error}`, 'error');
             }
@@ -2756,7 +3309,9 @@
             }
         }
 
-        // ═══════ WORKSPACE TREE ═══════
+        // ═══════ DRAG & DROP ORAZ PRZENOSZENIE WORKSPACE'ÓW MIĘDZY POZIOMAMI ═══════
+        let movingWsId = null;
+
         function renderWorkspacesTree() {
             const container = document.getElementById('wsTree');
             container.innerHTML = '';
@@ -2778,8 +3333,25 @@
                     fHeader.innerHTML = `
                         <span class="folder-arrow ${isOpen ? 'open' : ''}">▶</span>
                         <span class="ws-icon">${isOpen ? '📂' : '📁'}</span>
-                        <span>${item.info.title || 'Folder'}</span>
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${item.info.title || 'Folder'}</span>
+                        <span class="ws-action-btn delete" title="Usuń folder" onclick="event.stopPropagation(); deleteWorkspaceFolder('${item.id}')">✕</span>
                     `;
+
+                    // Drag & Drop do folderu
+                    fHeader.ondragover = (e) => {
+                        e.preventDefault();
+                        fHeader.classList.add('drag-over');
+                    };
+                    fHeader.ondragleave = () => {
+                        fHeader.classList.remove('drag-over');
+                    };
+                    fHeader.ondrop = (e) => {
+                        e.preventDefault();
+                        fHeader.classList.remove('drag-over');
+                        const draggedId = e.dataTransfer.getData('text/plain');
+                        if (draggedId) moveWorkspaceIntoFolder(draggedId, item.id);
+                    };
+
                     fHeader.onclick = () => {
                         item.info.collapsed = !item.info.collapsed;
                         renderWorkspacesTree();
@@ -2789,26 +3361,53 @@
                     if (isOpen) {
                         const wsList = document.createElement('div');
                         wsList.className = 'folder-workspaces';
+
+                        // Drop na listę folderu
+                        wsList.ondragover = (e) => { e.preventDefault(); wsList.classList.add('drag-over'); };
+                        wsList.ondragleave = () => { wsList.classList.remove('drag-over'); };
+                        wsList.ondrop = (e) => {
+                            e.preventDefault();
+                            wsList.classList.remove('drag-over');
+                            const draggedId = e.dataTransfer.getData('text/plain');
+                            if (draggedId) moveWorkspaceIntoFolder(draggedId, item.id);
+                        };
+
                         item.workspaces.forEach(ws => {
-                            wsList.appendChild(createWsItem(ws));
+                            wsList.appendChild(createWsItem(ws, item.id));
                         });
                         folderEl.appendChild(wsList);
                     }
                     container.appendChild(folderEl);
                 } else {
                     // STANDALONE WORKSPACE
-                    container.appendChild(createWsItem(item));
+                    container.appendChild(createWsItem(item, null));
                 }
             });
+
+            // Strefa upuszczenia na poziom główny
+            const rootDrop = document.createElement('div');
+            rootDrop.className = 'ws-root-dropzone';
+            rootDrop.innerHTML = '⤹ Upuść tutaj, aby przenieść na poziom główny';
+            rootDrop.ondragover = (e) => { e.preventDefault(); rootDrop.classList.add('drag-over'); };
+            rootDrop.ondragleave = () => { rootDrop.classList.remove('drag-over'); };
+            rootDrop.ondrop = (e) => {
+                e.preventDefault();
+                rootDrop.classList.remove('drag-over');
+                const draggedId = e.dataTransfer.getData('text/plain');
+                if (draggedId) moveWorkspaceToRoot(draggedId);
+            };
+            container.appendChild(rootDrop);
 
             updateStats();
         }
 
-        function createWsItem(ws) {
+        function createWsItem(ws, parentFolderId = null) {
             const wsEl = document.createElement('div');
             const isSelected = currentWorkspace && currentWorkspace.id === ws.id;
             const isEnabled = ws.active !== false;
             wsEl.className = `ws-item ${isSelected ? 'active' : ''}`;
+            wsEl.draggable = true;
+
             wsEl.innerHTML = `
                 <span class="stat-dot" title="${isEnabled ? 'Aktywny w bocie (kliknij, aby wyłączyć)' : 'Wyłączony w bocie (kliknij, aby włączyć)'}"
                       style="background: ${isEnabled ? 'var(--accent-green)' : 'var(--text-muted)'}; cursor: pointer; flex-shrink: 0;"
@@ -2816,13 +3415,185 @@
                 <span class="ws-icon">📄</span>
                 <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">${ws.info ? ws.info.title : 'Workspace'}</span>
                 <div class="ws-actions" onclick="event.stopPropagation();">
-                    <span class="ws-action-btn" title="Kopiuj kod tego workspace (JSON do schowka / wysłania)" onclick="copyWorkspaceCode('${ws.id}')">📋</span>
+                    <span class="ws-action-btn" title="Przenieś do folderu / na poziom główny" onclick="openMoveWorkspaceModal('${ws.id}')">📁</span>
+                    <span class="ws-action-btn" title="Kopiuj kod tego workspace (JSON do schowka)" onclick="copyWorkspaceCode('${ws.id}')">📋</span>
                     <span class="ws-action-btn" title="Duplikuj workspace" onclick="duplicateWorkspace('${ws.id}')">📄</span>
                     <span class="ws-action-btn delete" title="Usuń workspace" onclick="deleteWorkspace('${ws.id}')">✕</span>
                 </div>
             `;
+
+            // HTML5 Drag & Drop
+            wsEl.ondragstart = (e) => {
+                e.dataTransfer.setData('text/plain', ws.id);
+                e.dataTransfer.effectAllowed = 'move';
+                wsEl.classList.add('dragging');
+            };
+            wsEl.ondragend = () => {
+                wsEl.classList.remove('dragging');
+                document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            };
+            wsEl.ondragover = (e) => {
+                e.preventDefault();
+                wsEl.classList.add('drag-over');
+            };
+            wsEl.ondragleave = () => {
+                wsEl.classList.remove('drag-over');
+            };
+            wsEl.ondrop = (e) => {
+                e.preventDefault();
+                wsEl.classList.remove('drag-over');
+                const draggedId = e.dataTransfer.getData('text/plain');
+                if (draggedId && draggedId !== ws.id) {
+                    moveWorkspaceBeside(draggedId, ws.id, parentFolderId);
+                }
+            };
+
             wsEl.onclick = () => switchWorkspace(ws);
             return wsEl;
+        }
+
+        // Przenoszenie workspace'a do folderu
+        function moveWorkspaceIntoFolder(wsId, targetFolderId) {
+            let foundWs = null;
+
+            // Wyjmij z obecnego miejsca
+            for (let i = 0; i < rawWorkspacesData.length; i++) {
+                const item = rawWorkspacesData[i];
+                if (item.id === wsId) {
+                    foundWs = rawWorkspacesData.splice(i, 1)[0];
+                    break;
+                }
+                if (item.workspaces) {
+                    const fIdx = item.workspaces.findIndex(w => w.id === wsId);
+                    if (fIdx !== -1) {
+                        foundWs = item.workspaces.splice(fIdx, 1)[0];
+                        break;
+                    }
+                }
+            }
+
+            if (!foundWs) return;
+
+            // Wstaw do docelowego folderu
+            const targetFolder = rawWorkspacesData.find(f => f.id === targetFolderId && f.workspaces);
+            if (targetFolder) {
+                targetFolder.workspaces.push(foundWs);
+                targetFolder.info.collapsed = false; // rozwiń folder
+                saveToDisk();
+                renderWorkspacesTree();
+                showToast(`Przeniesiono do folderu "${targetFolder.info.title}"`, 'success');
+            }
+        }
+
+        // Przenoszenie workspace'a na poziom główny
+        function moveWorkspaceToRoot(wsId) {
+            let foundWs = null;
+            for (let i = 0; i < rawWorkspacesData.length; i++) {
+                const item = rawWorkspacesData[i];
+                if (item.id === wsId) return; // Już jest w root
+                if (item.workspaces) {
+                    const fIdx = item.workspaces.findIndex(w => w.id === wsId);
+                    if (fIdx !== -1) {
+                        foundWs = item.workspaces.splice(fIdx, 1)[0];
+                        break;
+                    }
+                }
+            }
+
+            if (!foundWs) return;
+            rawWorkspacesData.push(foundWs);
+            saveToDisk();
+            renderWorkspacesTree();
+            showToast('Przeniesiono na poziom główny', 'success');
+        }
+
+        // Zmiana kolejności obok innego workspace
+        function moveWorkspaceBeside(draggedId, targetId, parentFolderId) {
+            let foundWs = null;
+            for (let i = 0; i < rawWorkspacesData.length; i++) {
+                const item = rawWorkspacesData[i];
+                if (item.id === draggedId) {
+                    foundWs = rawWorkspacesData.splice(i, 1)[0];
+                    break;
+                }
+                if (item.workspaces) {
+                    const fIdx = item.workspaces.findIndex(w => w.id === draggedId);
+                    if (fIdx !== -1) {
+                        foundWs = item.workspaces.splice(fIdx, 1)[0];
+                        break;
+                    }
+                }
+            }
+            if (!foundWs) return;
+
+            if (parentFolderId) {
+                const parentFolder = rawWorkspacesData.find(f => f.id === parentFolderId);
+                if (parentFolder && parentFolder.workspaces) {
+                    const tIdx = parentFolder.workspaces.findIndex(w => w.id === targetId);
+                    if (tIdx !== -1) {
+                        parentFolder.workspaces.splice(tIdx, 0, foundWs);
+                    } else {
+                        parentFolder.workspaces.push(foundWs);
+                    }
+                }
+            } else {
+                const tIdx = rawWorkspacesData.findIndex(w => w.id === targetId);
+                if (tIdx !== -1) {
+                    rawWorkspacesData.splice(tIdx, 0, foundWs);
+                } else {
+                    rawWorkspacesData.push(foundWs);
+                }
+            }
+            saveToDisk();
+            renderWorkspacesTree();
+        }
+
+        function deleteWorkspaceFolder(folderId) {
+            if (!confirm('Usunąć ten folder wraz z zawartością?')) return;
+            const fIdx = rawWorkspacesData.findIndex(f => f.id === folderId);
+            if (fIdx !== -1) {
+                rawWorkspacesData.splice(fIdx, 1);
+                saveToDisk();
+                renderWorkspacesTree();
+                showToast('Folder usunięty', 'info');
+            }
+        }
+
+        function openMoveWorkspaceModal(wsId) {
+            const ws = findWorkspaceById(wsId);
+            if (!ws) return;
+            movingWsId = wsId;
+
+            document.getElementById('moveWsTargetTitle').textContent = ws.info?.title || 'Workspace';
+            const listEl = document.getElementById('moveWsDestinationsList');
+            listEl.innerHTML = '';
+
+            // Poziom główny
+            const rootBtn = document.createElement('div');
+            rootBtn.className = 'available-proj-row';
+            rootBtn.style.cursor = 'pointer';
+            rootBtn.innerHTML = '<span>🏠 Poziom główny (wyjmij z folderu)</span> <span style="font-size:11px; color:#5865f2;">Wybierz →</span>';
+            rootBtn.onclick = () => {
+                closeModal('modalMoveWorkspace');
+                moveWorkspaceToRoot(wsId);
+            };
+            listEl.appendChild(rootBtn);
+
+            // Foldery
+            const folders = rawWorkspacesData.filter(f => f.workspaces && Array.isArray(f.workspaces));
+            folders.forEach(fld => {
+                const fBtn = document.createElement('div');
+                fBtn.className = 'available-proj-row';
+                fBtn.style.cursor = 'pointer';
+                fBtn.innerHTML = `<span>📁 Folder: <strong>${escapeHTML(fld.info?.title || 'Folder')}</strong></span> <span style="font-size:11px; color:#5865f2;">Przenieś tutaj →</span>`;
+                fBtn.onclick = () => {
+                    closeModal('modalMoveWorkspace');
+                    moveWorkspaceIntoFolder(wsId, fld.id);
+                };
+                listEl.appendChild(fBtn);
+            });
+
+            openModal('modalMoveWorkspace');
         }
 
         function duplicateWorkspace(id) {
@@ -2964,7 +3735,103 @@
             return null;
         }
 
+        
+        // ═══════ PASEK ZAŁADOWANYCH BOTÓW (DOCK MULTI-BOTS) ═══════
+        const PROJECT_COLORS = ['#5865f2', '#8b572a', '#23a55a', '#eb459e', '#f38630', '#57f287', '#fee75c', '#ed4245'];
+
+        function getProjectColor(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return PROJECT_COLORS[Math.abs(hash) % PROJECT_COLORS.length];
+        }
+
+        let renderDockProjectId = 0;
+        async function renderDockProjects() {
+            const container = document.getElementById('dockLoadedProjects');
+            if (!container) return;
+
+            // Zabezpieczenie przed duplikatami w tablicy
+            loadedProjectPaths = [...new Set((loadedProjectPaths || []).filter(Boolean))];
+
+            const currentRenderId = ++renderDockProjectId;
+
+            // Pobierz aktualnie uruchomione boty dla badge'a statusu
+            let runningDirs = [];
+            try {
+                const list = await ipcRenderer.invoke('get-running-bots');
+                if (Array.isArray(list)) {
+                    runningDirs = list.filter(b => b.status === 'running').map(b => b.dir);
+                }
+            } catch(e) {}
+
+            // Jeśli w międzyczasie rozpoczęło się nowsze renderowanie, zakończ to
+            if (currentRenderId !== renderDockProjectId) return;
+
+            container.innerHTML = '';
+
+            loadedProjectPaths.forEach(projPath => {
+                const pName = projPath.split(/[\\/]/).filter(Boolean).pop() || 'Bot';
+                let initials = pName.split(/[\s-_]+/).map(w => w[0]).join('').toUpperCase().slice(0, 3);
+                if (!initials) initials = pName.slice(0, 2).toUpperCase();
+
+                const isActive = (currentProjectDir === projPath) && (document.getElementById('viewEditor')?.classList.contains('active'));
+                const isRunning = runningDirs.includes(projPath);
+
+                const btn = document.createElement('div');
+                btn.className = `dbb-dock-proj-btn ${isActive ? 'active' : ''}`;
+                btn.title = `${pName} (${projPath})`;
+
+                const color = getProjectColor(pName);
+
+                btn.innerHTML = `
+                    <div class="dock-proj-avatar" style="background: ${color};">
+                        ${initials}
+                    </div>
+                    ${isRunning ? '<span class="dock-proj-running-badge" title="Bot jest uruchomiony"></span>' : ''}
+                    <span class="dock-proj-close" title="Zamknij z paska" onclick="closeDockProject(event, '${escapeHTML(projPath)}')">✕</span>
+                `;
+
+                btn.onclick = () => {
+                    selectAndOpenProject(projPath);
+                };
+
+                container.appendChild(btn);
+            });
+        }
+
+        function closeDockProject(e, projPath) {
+            if (e) e.stopPropagation();
+            loadedProjectPaths = loadedProjectPaths.filter(p => p !== projPath);
+            try {
+                localStorage.setItem('dbb_loaded_projects', JSON.stringify(loadedProjectPaths));
+            } catch(e) {}
+
+            if (currentProjectDir === projPath) {
+                if (loadedProjectPaths.length > 0) {
+                    selectAndOpenProject(loadedProjectPaths[loadedProjectPaths.length - 1]);
+                } else {
+                    currentProjectDir = null;
+                    currentProjectName = null;
+                    currentWorkspace = null;
+                    switchView('home');
+                }
+            }
+            renderDockProjects();
+        }
+
+        function initLoadedProjects() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('dbb_loaded_projects') || '[]');
+                if (Array.isArray(saved)) {
+                    loadedProjectPaths = [...new Set(saved.filter(Boolean))];
+                }
+            } catch(e) {
+                loadedProjectPaths = [];
+            }
+        }
+
         function renderDockWorkspaces() {
+            renderDockProjects();
             const dockContainer = document.getElementById('dockOpenWorkspaces');
             if (!dockContainer) return;
             dockContainer.innerHTML = '';
@@ -3634,10 +4501,20 @@
                                 chkLabel.appendChild(chk);
                                 chkLabel.appendChild(document.createTextNode('Włączone'));
                                 optRow.appendChild(chkLabel);
-                            } else {
+                            } else if (optType === 'COLOR') {
                                 const inp = document.createElement('input');
                                 inp.className = 'dbb-input';
-                                inp.type = optType === 'COLOR' ? 'color' : 'text';
+                                inp.type = 'color';
+                                inp.value = (block.options && block.options[opt.id] !== undefined) ? block.options[opt.id] : (opt.defaultValue || '#ffffff');
+                                inp.oninput = (e) => {
+                                    if (!block.options) block.options = {};
+                                    block.options[opt.id] = e.target.value;
+                                };
+                                optRow.appendChild(inp);
+                            } else if (optType === 'NUMBER') {
+                                const inp = document.createElement('input');
+                                inp.className = 'dbb-input';
+                                inp.type = 'number';
                                 inp.placeholder = opt.description ? opt.description.split('\n')[0].substring(0, 40) : '';
                                 inp.value = (block.options && block.options[opt.id] !== undefined) ? block.options[opt.id] : (opt.defaultValue || '');
                                 inp.oninput = (e) => {
@@ -3645,6 +4522,27 @@
                                     block.options[opt.id] = e.target.value;
                                 };
                                 optRow.appendChild(inp);
+                            } else {
+                                // POWIĘKSZONE POLE TEXTAREA Z OBSŁUGĄ NOWYCH LINII I WIELU LINIEK
+                                const txtArea = document.createElement('textarea');
+                                txtArea.className = 'dbb-textarea';
+                                txtArea.placeholder = opt.description ? opt.description.substring(0, 80) : 'Wpisz tekst...';
+                                txtArea.value = (block.options && block.options[opt.id] !== undefined) ? block.options[opt.id] : (opt.defaultValue || '');
+
+                                const autoGrow = () => {
+                                    txtArea.style.height = 'auto';
+                                    txtArea.style.height = Math.max(54, txtArea.scrollHeight) + 'px';
+                                };
+                                setTimeout(autoGrow, 10);
+
+                                txtArea.oninput = (e) => {
+                                    if (!block.options) block.options = {};
+                                    block.options[opt.id] = e.target.value;
+                                    autoGrow();
+                                };
+                                txtArea.onmousedown = (e) => e.stopPropagation();
+
+                                optRow.appendChild(txtArea);
                             }
 
                             optionsBox.appendChild(optRow);
@@ -3668,7 +4566,7 @@
                         portWrapper.addEventListener('mouseup', (e) => {
                             if (connectingWire && connectingWire.type === 'output') {
                                 e.stopPropagation();
-                                finishConnectingWire(connectingWire.blockIdx, connectingWire.portKey, idx, key);
+                                finishConnectingWire(connectingWire.blockIdx, connectingWire.portKey, idx, key, connectingWire.outSubIdx || 0);
                             }
                         });
                         leftPorts.appendChild(portWrapper);
@@ -3677,24 +4575,58 @@
                     // Outputs
                     const rightPorts = document.createElement('div');
                     rightPorts.className = 'dbb-ports-col outputs';
-                    const outputKeys = new Set(Object.keys(block.outputs || {}));
-                    if (blockDef && blockDef.outputs) blockDef.outputs.forEach(o => outputKeys.add(o.id));
 
-                    outputKeys.forEach(key => {
+                    const defOutputs = (blockDef && Array.isArray(blockDef.outputs)) ? blockDef.outputs : [];
+                    const allOutKeys = new Set(Object.keys(block.outputs || {}));
+                    defOutputs.forEach(o => allOutKeys.add(o.id));
+
+                    allOutKeys.forEach(key => {
+                        const outDef = defOutputs.find(o => o.id === key);
+                        const isMulti = outDef ? Boolean(outDef.multiOutput) : false;
                         const isAction = key.toLowerCase().includes('action');
-                        const portWrapper = buildPort(key, idx, true, blockDef);
 
-                        const dot = portWrapper.querySelector('.port-dot');
-                        dot.addEventListener('mousedown', (e) => {
-                            e.stopPropagation();
-                            startConnectingWire(idx, key, isAction);
-                        });
+                        if (isMulti) {
+                            // Jeśli wyjście jest multiOutput (np. Text, Boolean, Number itp.)
+                            if (!block.outputs) block.outputs = {};
+                            if (!Array.isArray(block.outputs[key])) {
+                                block.outputs[key] = [[]];
+                            }
+                            const count = Math.max(1, block.outputs[key].length);
 
-                        rightPorts.appendChild(portWrapper);
+                            for (let outSubIdx = 0; outSubIdx < count; outSubIdx++) {
+                                const subPortWrapper = buildPort(key, idx, true, blockDef, outSubIdx, count > 1);
+                                const dot = subPortWrapper.querySelector('.port-dot');
+                                dot.addEventListener('mousedown', (e) => {
+                                    e.stopPropagation();
+                                    startConnectingWire(idx, key, isAction, outSubIdx);
+                                });
+                                rightPorts.appendChild(subPortWrapper);
+                            }
+
+                            // Przycisk "＋" do dodawania kolejnego portu wyjściowego i pola tekstowego
+                            const addPortBtn = document.createElement('div');
+                            addPortBtn.className = 'dbb-add-port-btn';
+                            addPortBtn.title = 'Dodaj kolejne wyjście (Text)';
+                            addPortBtn.innerHTML = `<span>＋ Dodaj wyjście</span>`;
+                            addPortBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                addMultiOutputPort(idx, key);
+                            };
+                            rightPorts.appendChild(addPortBtn);
+                        } else {
+                            // Zwykłe wyjście pojedyncze
+                            const portWrapper = buildPort(key, idx, true, blockDef);
+                            const dot = portWrapper.querySelector('.port-dot');
+                            dot.addEventListener('mousedown', (e) => {
+                                e.stopPropagation();
+                                startConnectingWire(idx, key, isAction, 0);
+                            });
+                            rightPorts.appendChild(portWrapper);
+                        }
                     });
 
                     if (inputKeys.size === 0) leftPorts.style.display = 'none';
-                    if (outputKeys.size === 0) rightPorts.style.display = 'none';
+                    if (allOutKeys.size === 0) rightPorts.style.display = 'none';
                     if (optList.length === 0) centerScroll.style.display = 'none';
 
                     centerScroll.appendChild(optionsBox);
@@ -3799,7 +4731,82 @@
             };
         }
 
-        function buildPort(key, blockIdx, isOutput, blockDef) {
+        
+        // ═══════ OBSŁUGA MULTI-OUTPUT (DODAWANIE / USUWANIE WYJŚĆ I PÓL) ═══════
+        function addMultiOutputPort(blockIdx, outKey) {
+            if (!currentWorkspace || !currentWorkspace.blocks[blockIdx]) return;
+            const block = currentWorkspace.blocks[blockIdx];
+            if (!block.outputs) block.outputs = {};
+            if (!Array.isArray(block.outputs[outKey])) {
+                block.outputs[outKey] = [[]];
+            }
+            block.outputs[outKey].push([]);
+
+            // Dopasuj odpowiednie pole w options jeśli istnieje funkcja generująca opcje
+            const nextNum = block.outputs[outKey].length;
+            const optKey = `${outKey}${nextNum}`;
+            if (!block.options) block.options = {};
+            if (block.options[optKey] === undefined) {
+                block.options[optKey] = "";
+            }
+
+            renderCanvas();
+            saveToDisk();
+            showToast(`Dodano wyjście ${outKey} #${nextNum}`, 'success');
+        }
+
+        function removeMultiOutputPort(blockIdx, outKey, outSubIdx) {
+            if (!currentWorkspace || !currentWorkspace.blocks[blockIdx]) return;
+            const block = currentWorkspace.blocks[blockIdx];
+            if (!block.outputs || !Array.isArray(block.outputs[outKey])) return;
+
+            // Usuń połączenia przypisane do tego konkretnego slotu
+            const removedWires = block.outputs[outKey][outSubIdx] || [];
+            if (Array.isArray(removedWires)) {
+                removedWires.forEach(wId => {
+                    // Wyczyść wejścia innych bloków korzystające z tego kabla
+                    currentWorkspace.blocks.forEach((b, targetIdx) => {
+                        if (b.inputs) {
+                            Object.keys(b.inputs).forEach(inK => {
+                                if (Array.isArray(b.inputs[inK])) {
+                                    b.inputs[inK] = b.inputs[inK].filter(x => x !== wId);
+                                } else if (b.inputs[inK] === wId) {
+                                    delete b.inputs[inK];
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            block.outputs[outKey].splice(outSubIdx, 1);
+            if (block.outputs[outKey].length === 0) {
+                block.outputs[outKey] = [[]];
+            }
+
+            // Przesuń klucze w options (np. text1, text2...)
+            const prefix = outKey;
+            const newOpts = {};
+            let counter = 1;
+            Object.keys(block.options || {}).forEach(k => {
+                if (k.startsWith(prefix) && /^\d+$/.test(k.slice(prefix.length))) {
+                    const num = parseInt(k.slice(prefix.length), 10);
+                    if (num !== (outSubIdx + 1)) {
+                        newOpts[`${prefix}${counter}`] = block.options[k];
+                        counter++;
+                    }
+                } else {
+                    newOpts[k] = block.options[k];
+                }
+            });
+            block.options = newOpts;
+
+            renderCanvas();
+            saveToDisk();
+            showToast(`Usunięto wyjście #${outSubIdx + 1}`, 'info');
+        }
+
+        function buildPort(key, blockIdx, isOutput, blockDef, outSubIdx = 0, showSubIndex = false) {
             const isAction = key.toLowerCase().includes('action');
             let colorClass = isAction ? (isOutput ? 'action-out' : 'action') : 'green';
             if (['server', 'guild'].some(k => key.toLowerCase().includes(k))) colorClass = 'blue';
@@ -3820,14 +4827,18 @@
             portWrapper.className = 'port-item';
             if (isOutput) {
                 portWrapper.dataset.outputKey = key;
+                portWrapper.dataset.subIdx = outSubIdx;
             } else {
                 portWrapper.dataset.inputKey = key;
             }
             portWrapper.dataset.blockIdx = blockIdx;
 
             if (isOutput) {
+                const displayName = showSubIndex ? `${portName} ${outSubIdx + 1}` : portName;
+                const removeBtnHtml = showSubIndex ? `<span class="port-remove-btn" title="Usuń ten port" onclick="event.stopPropagation(); removeMultiOutputPort(${blockIdx}, '${key}', ${outSubIdx})">✕</span>` : '';
                 portWrapper.innerHTML = `
-                    <span>${portName}</span>
+                    ${removeBtnHtml}
+                    <span>${displayName}</span>
                     <span class="port-dot ${colorClass}"></span>
                 `;
             } else {
@@ -3881,6 +4892,15 @@
             return { x: 0, y: 0 };
         }
 
+        let wiresAnimFrame = null;
+        function scheduleDrawWires() {
+            if (wiresAnimFrame) return;
+            wiresAnimFrame = requestAnimationFrame(() => {
+                wiresAnimFrame = null;
+                drawWires();
+            });
+        }
+
         function drawWires() {
             const svg = document.getElementById('wiresSvg');
             svg.innerHTML = '';
@@ -3892,9 +4912,15 @@
                 if (!block.outputs) return;
                 Object.entries(block.outputs).forEach(([outKey, targets]) => {
                     if (Array.isArray(targets)) {
-                        targets.flat().forEach(t => {
-                            if (typeof t === 'string' && t.trim() !== '') {
-                                outputIdMap.set(t, { bIdx, outKey });
+                        targets.forEach((item, subIdx) => {
+                            if (Array.isArray(item)) {
+                                item.forEach(wId => {
+                                    if (typeof wId === 'string' && wId.trim()) {
+                                        outputIdMap.set(wId, { bIdx, outKey, subIdx });
+                                    }
+                                });
+                            } else if (typeof item === 'string' && item.trim()) {
+                                outputIdMap.set(item, { bIdx, outKey, subIdx: 0 });
                             }
                         });
                     }
@@ -3908,7 +4934,7 @@
                     idsToMatch.forEach(wireId => {
                         if (typeof wireId === 'string' && outputIdMap.has(wireId)) {
                             const source = outputIdMap.get(wireId);
-                            renderWire(source.bIdx, source.outKey, targetIdx, inKey, wireId);
+                            renderWire(source.bIdx, source.outKey, targetIdx, inKey, wireId, source.subIdx || 0);
                         }
                     });
                 });
@@ -3919,13 +4945,13 @@
             }
         }
 
-        function renderWire(sourceIdx, outKey, targetIdx, inKey, wireId) {
+        function renderWire(sourceIdx, outKey, targetIdx, inKey, wireId, outSubIdx = 0) {
             const svg = document.getElementById('wiresSvg');
             const sourceCard = document.getElementById(`block_${sourceIdx}`);
             const targetCard = document.getElementById(`block_${targetIdx}`);
             if (!sourceCard || !targetCard) return;
 
-            const sourcePort = sourceCard.querySelector(`[data-output-key="${outKey}"] .port-dot`);
+            const sourcePort = sourceCard.querySelector(`[data-output-key="${outKey}"][data-sub-idx="${outSubIdx}"] .port-dot`) || sourceCard.querySelector(`[data-output-key="${outKey}"] .port-dot`);
             const targetPort = targetCard.querySelector(`[data-input-key="${inKey}"] .port-dot`);
 
             const p1 = getPortCenterInCanvas(sourcePort, true, sourceCard);
@@ -3972,11 +4998,11 @@
             updateStats();
         }
 
-        function startConnectingWire(blockIdx, portKey, isAction) {
+        function startConnectingWire(blockIdx, portKey, isAction, outSubIdx = 0) {
             const sourceCard = document.getElementById(`block_${blockIdx}`);
-            const sourcePort = sourceCard?.querySelector(`[data-output-key="${portKey}"] .port-dot`);
+            const sourcePort = sourceCard?.querySelector(`[data-output-key="${portKey}"][data-sub-idx="${outSubIdx}"] .port-dot`) || sourceCard?.querySelector(`[data-output-key="${portKey}"] .port-dot`);
             const startPos = getPortCenterInCanvas(sourcePort, true, sourceCard);
-            connectingWire = { type: 'output', blockIdx, portKey, isAction, currentX: startPos.x, currentY: startPos.y };
+            connectingWire = { type: 'output', blockIdx, portKey, outSubIdx, isAction, currentX: startPos.x, currentY: startPos.y };
         }
 
         function renderTemporaryWire() {
@@ -3984,7 +5010,7 @@
             const sourceCard = document.getElementById(`block_${connectingWire.blockIdx}`);
             if (!sourceCard) return;
 
-            const sourcePort = sourceCard.querySelector(`[data-output-key="${connectingWire.portKey}"] .port-dot`);
+            const sourcePort = sourceCard.querySelector(`[data-output-key="${connectingWire.portKey}"][data-sub-idx="${connectingWire.outSubIdx || 0}"] .port-dot`) || sourceCard.querySelector(`[data-output-key="${connectingWire.portKey}"] .port-dot`);
             const p1 = getPortCenterInCanvas(sourcePort, true, sourceCard);
             const p2 = { x: connectingWire.currentX, y: connectingWire.currentY };
 
@@ -4001,7 +5027,7 @@
             svg.appendChild(path);
         }
 
-        function finishConnectingWire(sourceIdx, outKey, targetIdx, inKey) {
+        function finishConnectingWire(sourceIdx, outKey, targetIdx, inKey, outSubIdx = 0) {
             const sourceBlock = currentWorkspace.blocks[sourceIdx];
             const targetBlock = currentWorkspace.blocks[targetIdx];
             if (!sourceBlock || !targetBlock) return;
@@ -4012,7 +5038,10 @@
             if (!sourceBlock.outputs[outKey]) sourceBlock.outputs[outKey] = [];
 
             if (Array.isArray(sourceBlock.outputs[outKey][0])) {
-                sourceBlock.outputs[outKey][0].push(newWireId);
+                while (sourceBlock.outputs[outKey].length <= outSubIdx) {
+                    sourceBlock.outputs[outKey].push([]);
+                }
+                sourceBlock.outputs[outKey][outSubIdx].push(newWireId);
             } else {
                 sourceBlock.outputs[outKey].push(newWireId);
             }
@@ -4044,53 +5073,65 @@
                 }
             });
 
+            let isMoveScheduled = false;
+            let lastMouseEvent = null;
+
             window.addEventListener('mousemove', (e) => {
-                if (isPanning) {
-                    panX = e.clientX - startPan.x;
-                    panY = e.clientY - startPan.y;
-                    canvasContent.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
-                    drawGrid();
-                } else if (isResizingBlock && resizeBlockIdx !== null && currentWorkspace) {
-                    const block = currentWorkspace.blocks[resizeBlockIdx];
-                    const dx = (e.clientX - resizeStart.x) / zoomScale;
-                    const dy = (e.clientY - resizeStart.y) / zoomScale;
-                    const el = document.getElementById(`block_${resizeBlockIdx}`);
+                if (!isPanning && !isResizingBlock && !isDraggingBlock && !connectingWire) return;
+                lastMouseEvent = e;
+                if (!isMoveScheduled) {
+                    isMoveScheduled = true;
+                    requestAnimationFrame(() => {
+                        isMoveScheduled = false;
+                        if (!lastMouseEvent) return;
+                        const ev = lastMouseEvent;
 
-                    if (resizeMode === 'both' || resizeMode === 'width') {
-                        const newW = Math.max(240, Math.round(resizeStart.w + dx));
-                        block.width = newW;
-                        if (el) el.style.width = `${newW}px`;
-                    }
+                        if (isPanning) {
+                            panX = ev.clientX - startPan.x;
+                            panY = ev.clientY - startPan.y;
+                            canvasContent.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${zoomScale})`;
+                            drawGrid();
+                        } else if (isResizingBlock && resizeBlockIdx !== null && currentWorkspace) {
+                            const block = currentWorkspace.blocks[resizeBlockIdx];
+                            const dx = (ev.clientX - resizeStart.x) / zoomScale;
+                            const dy = (ev.clientY - resizeStart.y) / zoomScale;
+                            const el = document.getElementById(`block_${resizeBlockIdx}`);
 
-                    if (resizeMode === 'both' || resizeMode === 'height') {
-                        const newH = Math.max(90, Math.round(resizeStart.h + dy));
-                        block.height = newH;
-                        if (el) {
-                            el.style.height = `${newH}px`;
-                            el.style.maxHeight = 'none';
+                            if (resizeMode === 'both' || resizeMode === 'width') {
+                                const newW = Math.max(240, Math.round(resizeStart.w + dx));
+                                block.width = newW;
+                                if (el) el.style.width = `${newW}px`;
+                            }
+
+                            if (resizeMode === 'both' || resizeMode === 'height') {
+                                const newH = Math.max(90, Math.round(resizeStart.h + dy));
+                                block.height = newH;
+                                if (el) {
+                                    el.style.height = `${newH}px`;
+                                    el.style.maxHeight = 'none';
+                                }
+                            }
+
+                            scheduleDrawWires();
+                        } else if (isDraggingBlock && dragBlockIdx !== null && currentWorkspace) {
+                            const areaRect = canvasArea.getBoundingClientRect();
+                            const block = currentWorkspace.blocks[dragBlockIdx];
+                            block.x = Math.round(((ev.clientX - areaRect.left - panX) / zoomScale) - dragOffset.x);
+                            block.y = Math.round(((ev.clientY - areaRect.top - panY) / zoomScale) - dragOffset.y);
+
+                            const el = document.getElementById(`block_${dragBlockIdx}`);
+                            if (el) {
+                                el.style.left = `${block.x}px`;
+                                el.style.top = `${block.y}px`;
+                            }
+                            scheduleDrawWires();
+                        } else if (connectingWire) {
+                            const areaRect = canvasArea.getBoundingClientRect();
+                            connectingWire.currentX = (ev.clientX - areaRect.left - panX) / zoomScale;
+                            connectingWire.currentY = (ev.clientY - areaRect.top - panY) / zoomScale;
+                            scheduleDrawWires();
                         }
-                    }
-
-                    drawWires();
-                    updateMinimap();
-                } else if (isDraggingBlock && dragBlockIdx !== null && currentWorkspace) {
-                    const areaRect = canvasArea.getBoundingClientRect();
-                    const block = currentWorkspace.blocks[dragBlockIdx];
-                    block.x = Math.round(((e.clientX - areaRect.left - panX) / zoomScale) - dragOffset.x);
-                    block.y = Math.round(((e.clientY - areaRect.top - panY) / zoomScale) - dragOffset.y);
-
-                    const el = document.getElementById(`block_${dragBlockIdx}`);
-                    if (el) {
-                        el.style.left = `${block.x}px`;
-                        el.style.top = `${block.y}px`;
-                    }
-                    drawWires();
-                    updateMinimap();
-                } else if (connectingWire) {
-                    const areaRect = canvasArea.getBoundingClientRect();
-                    connectingWire.currentX = (e.clientX - areaRect.left - panX) / zoomScale;
-                    connectingWire.currentY = (e.clientY - areaRect.top - panY) / zoomScale;
-                    drawWires();
+                    });
                 }
             });
 
@@ -4098,6 +5139,7 @@
                 if (isPanning) {
                     canvasArea.style.cursor = 'default';
                 }
+                const wasDraggingOrResizing = isDraggingBlock || isResizingBlock;
                 isPanning = false;
                 isDraggingBlock = false;
                 dragBlockIdx = null;
@@ -4110,6 +5152,11 @@
 
                 if (connectingWire) {
                     connectingWire = null;
+                    drawWires();
+                }
+
+                if (wasDraggingOrResizing) {
+                    updateMinimap();
                     drawWires();
                 }
             });
@@ -4491,9 +5538,22 @@
 
         function setupPanelResizers() {
             const sResizer = document.getElementById('sidebarResizer');
+            const rResizer = document.getElementById('rightPanelResizer');
             const cResizer = document.getElementById('consoleResizer');
             const sidebar = document.getElementById('mainSidebar');
+            const rightPanel = document.getElementById('rightProjectsPanel');
             const bottomPanel = document.getElementById('bottomPanel');
+            let isResizingRight = false;
+
+            if (rResizer && rightPanel) {
+                rResizer.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    isResizingRight = true;
+                    rResizer.classList.add('active');
+                    document.body.style.cursor = 'col-resize';
+                    document.body.style.userSelect = 'none';
+                });
+            }
 
             if (sResizer && sidebar) {
                 sResizer.addEventListener('mousedown', (e) => {
@@ -4523,6 +5583,12 @@
                     sidebar.style.minWidth = `${newW}px`;
                     resizeCanvasGrid();
                     drawWires();
+                } else if (isResizingRight && rightPanel) {
+                    const newW = Math.max(220, Math.min(550, window.innerWidth - e.clientX));
+                    rightPanel.style.width = `${newW}px`;
+                    rightPanel.style.minWidth = `${newW}px`;
+                    resizeCanvasGrid();
+                    drawWires();
                 } else if (isResizingConsole && bottomPanel) {
                     const newH = Math.max(100, Math.min(650, window.innerHeight - e.clientY));
                     bottomPanel.style.height = `${newH}px`;
@@ -4535,6 +5601,12 @@
                 if (isResizingSidebar) {
                     isResizingSidebar = false;
                     sResizer?.classList.remove('active');
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+                if (isResizingRight) {
+                    isResizingRight = false;
+                    rResizer?.classList.remove('active');
                     document.body.style.cursor = '';
                     document.body.style.userSelect = '';
                 }
@@ -4557,7 +5629,8 @@
                 homeView.classList.add('active');
                 editorView.classList.remove('active');
                 dockHome.classList.add('active');
-                document.querySelectorAll('.dbb-dock-ws-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.dbb-dock-proj-btn').forEach(btn => btn.classList.remove('active'));
+                renderDockProjects();
                 loadRecentProjectsUI();
             } else {
                 if (!currentProjectName) {
@@ -4578,6 +5651,83 @@
                     resizeCanvasGrid();
                     renderCanvas();
                 }, 50);
+            }
+        }
+
+        
+        // ═══════ AKTUALIZACJE GITHUB ═══════
+        async function checkForAppUpdates() {
+            const btn = document.getElementById('btnCheckUpdate');
+            const statusText = document.getElementById('updateStatusText');
+            const detailsBox = document.getElementById('updateDetailsBox');
+            const infoMsg = document.getElementById('updateInfoMsg');
+            const applyBtn = document.getElementById('btnApplyUpdate');
+
+            if (btn) btn.disabled = true;
+            if (statusText) statusText.textContent = 'Sprawdzanie w GitHubie...';
+
+            try {
+                const res = await ipcRenderer.invoke('check-app-update');
+                if (btn) btn.disabled = false;
+
+                if (!res.ok) {
+                    if (statusText) statusText.textContent = `Błąd: ${res.error}`;
+                    showToast(`Błąd sprawdzania aktualizacji: ${res.error}`, 'error');
+                    return;
+                }
+
+                if (document.getElementById('appCurrentVersionText')) {
+                    document.getElementById('appCurrentVersionText').textContent = res.currentVersion + (res.localCommitSha ? ` (${res.localCommitSha})` : '');
+                }
+
+                if (res.hasUpdate) {
+                    if (statusText) statusText.textContent = 'Dostępna nowa wersja!';
+                    if (detailsBox) detailsBox.style.display = 'block';
+
+                    let msg = '';
+                    if (res.latestCommit) {
+                        msg = `Dostępny nowy commit: <strong>${res.latestCommit.sha}</strong> - "${escapeHTML(res.latestCommit.message)}"<br><span style="color:#8c909e; font-size:10px;">${res.latestCommit.date}</span>`;
+                    } else if (res.latestRelease) {
+                        msg = `Dostępny release: <strong>${res.latestRelease.tag}</strong>`;
+                    }
+                    if (infoMsg) infoMsg.innerHTML = msg;
+
+                    if (applyBtn) {
+                        applyBtn.style.display = 'inline-block';
+                    }
+                    showToast('Znaleziono aktualizację w repozytorium!', 'info');
+                } else {
+                    if (statusText) statusText.textContent = 'Posiadasz najnowszą wersję.';
+                    if (detailsBox) detailsBox.style.display = 'none';
+                    showToast('Twoja wersja jest aktualna!', 'success');
+                }
+            } catch(err) {
+                if (btn) btn.disabled = false;
+                if (statusText) statusText.textContent = 'Błąd połączenia z GitHubem';
+                showToast('Błąd połączenia z GitHubem', 'error');
+            }
+        }
+
+        async function applyAppUpdate() {
+            const applyBtn = document.getElementById('btnApplyUpdate');
+            if (applyBtn) {
+                applyBtn.disabled = true;
+                applyBtn.textContent = 'Pobieranie i aktualizacja...';
+            }
+            showToast('Pobieranie najnowszej wersji z GitHub...', 'info');
+
+            const res = await ipcRenderer.invoke('apply-git-update');
+            if (res.ok) {
+                showToast('Aktualizacja pomyślna! Zrestartuj aplikację.', 'success');
+                if (applyBtn) {
+                    applyBtn.textContent = 'Zaktualizowano! Zrestartuj program.';
+                }
+            } else {
+                showToast(`Błąd aktualizacji: ${res.error}`, 'error');
+                if (applyBtn) {
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Spróbuj ponownie';
+                }
             }
         }
 
@@ -4711,6 +5861,15 @@
             if (res.ok) {
                 showToast(`Załadowano bota: "${res.current}"`, 'info');
                 currentProjectName = res.current;
+                currentProjectDir = res.path;
+                if (!loadedProjectPaths.includes(res.path)) {
+                    loadedProjectPaths.push(res.path);
+                }
+                loadedProjectPaths = [...new Set(loadedProjectPaths.filter(Boolean))];
+                try {
+                    localStorage.setItem('dbb_loaded_projects', JSON.stringify(loadedProjectPaths));
+                } catch(e) {}
+                renderDockProjects();
                 document.getElementById('editorProjectTitle').textContent = res.current;
                 if (res.savedToken) {
                     document.getElementById('botToken').value = res.savedToken;
@@ -4724,6 +5883,7 @@
                 renderWorkspacesTree();
                 findAndActivateDefaultWorkspace();
                 switchView('editor');
+                loadRunningBotsList();
             } else {
                 showToast(`Błąd otwierania projektu: ${res.error}`, 'error');
             }
@@ -4773,6 +5933,8 @@
         }
 
         init();
+        initLoadedProjects();
+        renderDockProjects();
         loadRecentProjectsUI();
     </script>
 </body>

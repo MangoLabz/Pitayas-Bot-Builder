@@ -4,7 +4,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 
 let mainWindow;
-let botProcess = null;
+const runningBotProcesses = new Map();
 
 const APP_DIR = __dirname;
 const BOTY_DIR = '/home/rakunek/Dokumenty/Moje/Boty';
@@ -118,7 +118,10 @@ function createWindow() {
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
-    if (botProcess) botProcess.kill();
+    runningBotProcesses.forEach(entry => {
+        try { if (entry.process) entry.process.kill(); } catch(e) {}
+    });
+    runningBotProcesses.clear();
     if (process.platform !== 'darwin') app.quit();
 });
 
@@ -147,8 +150,12 @@ const EventEmitter = require('events');
 const DiscordJS = require('discord.js');
 const { Client, GatewayIntentBits, Partials, Events, Collection } = DiscordJS;
 
-const WORKSPACES_PATH = path.join(__dirname, 'workspaces.json');
-const DATA_PATH = path.join(__dirname, 'data.json');
+const WORKSPACES_PATH = fs.existsSync(path.join(__dirname, 'data', 'workspaces.json'))
+    ? path.join(__dirname, 'data', 'workspaces.json')
+    : path.join(__dirname, 'workspaces.json');
+const DATA_PATH = fs.existsSync(path.join(__dirname, 'data', 'data.json'))
+    ? path.join(__dirname, 'data', 'data.json')
+    : path.join(__dirname, 'data.json');
 const BLOCKS_DIR = fs.existsSync(path.join(__dirname, 'blocks')) 
     ? path.join(__dirname, 'blocks') 
     : path.join(__dirname, '..', '..', 'blocks');
@@ -911,11 +918,6 @@ ipcMain.handle('open-project-dialog', async () => {
 });
 
 ipcMain.handle('switch-project', (event, projNameOrPath) => {
-    if (botProcess) {
-        botProcess.kill();
-        botProcess = null;
-        if (mainWindow) mainWindow.webContents.send('bot-status', false);
-    }
     const paths = getProjectPaths(projNameOrPath);
     currentProject = paths.dir;
 
@@ -1053,53 +1055,163 @@ ipcMain.handle('generate-bot', (event, token) => {
     }
 });
 
-// Zarządzanie procesem Bota (Start / Stop) dla aktualnego projektu
-ipcMain.handle('start-bot', (event, token) => {
-    if (botProcess) return { status: 'already_running' };
+// ═══════ ZARZĄDZANIE WIELOMA PROCESAMI BOTÓW JEDNOCZEŚNIE ═══════
+function getRunningBotsList() {
+    const list = [];
+    runningBotProcesses.forEach((entry, projDir) => {
+        list.push({
+            dir: projDir,
+            name: entry.name,
+            startTime: entry.startTime,
+            pid: entry.process?.pid || null,
+            status: entry.status || 'running'
+        });
+    });
+    return list;
+}
 
-    const paths = getProjectPaths(currentProject);
+ipcMain.handle('get-running-bots', () => {
+    return getRunningBotsList();
+});
 
-    // Zawsze upewnij się, że bot.js istnieje i nie jest pusty
+ipcMain.handle('start-bot', (event, arg) => {
+    let targetProj = currentProject;
+    let explicitToken = '';
+
+    if (typeof arg === 'string') {
+        explicitToken = arg;
+    } else if (arg && typeof arg === 'object') {
+        targetProj = arg.projNameOrPath || currentProject;
+        explicitToken = arg.token || '';
+    }
+
+    if (!targetProj) return { ok: false, error: 'Brak projektu do uruchomienia' };
+    const paths = getProjectPaths(targetProj);
+    if (!paths) return { ok: false, error: 'Nie znaleziono ścieżek projektu: ' + targetProj };
+
+    if (runningBotProcesses.has(paths.dir)) {
+        return { ok: false, status: 'already_running', project: paths.name, dir: paths.dir, runningList: getRunningBotsList() };
+    }
+
+    // Upewnij się, że bot.js istnieje i nie jest pusty
     if (!fs.existsSync(paths.bot) || fs.statSync(paths.bot).size === 0) {
         fs.writeFileSync(paths.bot, getBotJSContent(paths), 'utf-8');
     }
 
-    if (token && token.trim()) {
-        fs.writeFileSync(paths.env, `TOKEN=${token.trim()}\n`, 'utf-8');
+    // Ustal właściwy token dla TEGO projektu
+    let effectiveToken = (explicitToken && explicitToken.trim()) ? explicitToken.trim() : (paths.savedToken || '');
+
+    if (explicitToken && explicitToken.trim()) {
+        fs.writeFileSync(paths.env, `TOKEN=${explicitToken.trim()}\n`, 'utf-8');
+        effectiveToken = explicitToken.trim();
+    }
+
+    // Sprawdź czy token jest dostępny
+    if (!effectiveToken) {
+        return { ok: false, error: 'Brak tokenu Discord dla bota "' + paths.name + '". Wpisz token w polu na górze lub pliku .env', needToken: true, project: paths.name, dir: paths.dir };
     }
 
     const nodeModulesPath = path.join(ROOT_DIR, 'node_modules');
     const existingNodePath = process.env.NODE_PATH || '';
     const env = Object.assign({}, process.env, {
-        TOKEN: token,
+        TOKEN: effectiveToken,
+        DISCORD_TOKEN: effectiveToken,
         NODE_PATH: nodeModulesPath + (existingNodePath ? ':' + existingNodePath : '')
     });
     const cwd = paths.dir;
-    botProcess = spawn('node', [paths.bot], { cwd, env });
 
-    botProcess.stdout.on('data', (data) => {
-        if (mainWindow) mainWindow.webContents.send('bot-log', data.toString());
+    const child = spawn('node', [paths.bot], { cwd, env });
+
+    runningBotProcesses.set(paths.dir, {
+        process: child,
+        name: paths.name,
+        dir: paths.dir,
+        startTime: Date.now(),
+        status: 'running'
     });
 
-    botProcess.stderr.on('data', (data) => {
-        if (mainWindow) mainWindow.webContents.send('bot-log', `[BŁĄD] ${data.toString()}`);
+    child.stdout.on('data', (data) => {
+        if (mainWindow) {
+            mainWindow.webContents.send('bot-log', {
+                projectDir: paths.dir,
+                projectName: paths.name,
+                message: data.toString(),
+                type: 'stdout'
+            });
+        }
     });
 
-    botProcess.on('close', (code) => {
-        botProcess = null;
-        if (mainWindow) mainWindow.webContents.send('bot-status', false);
+    child.stderr.on('data', (data) => {
+        if (mainWindow) {
+            mainWindow.webContents.send('bot-log', {
+                projectDir: paths.dir,
+                projectName: paths.name,
+                message: data.toString(),
+                type: 'stderr'
+            });
+        }
     });
 
-    return { status: 'started' };
+    child.on('close', (code) => {
+        runningBotProcesses.delete(paths.dir);
+        if (mainWindow) {
+            mainWindow.webContents.send('bot-status-change', {
+                projectDir: paths.dir,
+                projectName: paths.name,
+                running: false,
+                code: code,
+                runningList: getRunningBotsList()
+            });
+        }
+    });
+
+    if (mainWindow) {
+        mainWindow.webContents.send('bot-status-change', {
+            projectDir: paths.dir,
+            projectName: paths.name,
+            running: true,
+            runningList: getRunningBotsList()
+        });
+    }
+
+    return { ok: true, status: 'started', project: paths.name, dir: paths.dir, runningList: getRunningBotsList() };
 });
 
-ipcMain.handle('stop-bot', () => {
-    if (botProcess) {
-        botProcess.kill();
-        botProcess = null;
-        return { status: 'stopped' };
+ipcMain.handle('stop-bot', (event, projNameOrPath) => {
+    const targetProj = projNameOrPath || currentProject;
+    if (!targetProj) return { ok: false, error: 'Brak projektu' };
+    const paths = getProjectPaths(targetProj);
+    if (!paths) return { ok: false, error: 'Nie znaleziono ścieżek projektu' };
+
+    const entry = runningBotProcesses.get(paths.dir);
+    if (entry && entry.process) {
+        entry.process.kill();
+        runningBotProcesses.delete(paths.dir);
+        if (mainWindow) {
+            mainWindow.webContents.send('bot-status-change', {
+                projectDir: paths.dir,
+                projectName: paths.name,
+                running: false,
+                runningList: getRunningBotsList()
+            });
+        }
+        return { ok: true, status: 'stopped', project: paths.name, dir: paths.dir, runningList: getRunningBotsList() };
     }
-    return { status: 'not_running' };
+    return { ok: false, status: 'not_running', project: paths.name, dir: paths.dir };
+});
+
+ipcMain.handle('stop-all-bots', () => {
+    runningBotProcesses.forEach((entry) => {
+        try { if (entry.process) entry.process.kill(); } catch (e) {}
+    });
+    runningBotProcesses.clear();
+    if (mainWindow) {
+        mainWindow.webContents.send('bot-status-change', {
+            running: false,
+            runningList: []
+        });
+    }
+    return { ok: true, status: 'all_stopped', runningList: [] };
 });
 
 // Ładowanie bloków z folderu /blocks/
@@ -1183,4 +1295,101 @@ ipcMain.handle('save-workspaces', (event, data) => {
         console.error('[BŁĄD ZAPISU workspaces.json]:', err);
         return false;
     }
+});
+
+// ═══════ AKTUALIZATOR GITHUB ═══════
+const https = require('https');
+const { exec } = require('child_process');
+
+function fetchJsonFromUrl(url) {
+    return new Promise((resolve, reject) => {
+        const options = {
+            headers: { 'User-Agent': 'Mango-Bot-Builder-App' }
+        };
+        https.get(url, options, (res) => {
+            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                return resolve(fetchJsonFromUrl(res.headers.location));
+            }
+            if (res.statusCode !== 200) {
+                return reject(new Error(`HTTP ${res.statusCode}`));
+            }
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    resolve(JSON.parse(data));
+                } catch(e) {
+                    reject(e);
+                }
+            });
+        }).on('error', reject);
+    });
+}
+
+ipcMain.handle('check-app-update', async () => {
+    try {
+        const pkg = require('./package.json');
+        const currentVersion = pkg.version || '1.0.0';
+
+        // 1. Sprawdź najnowszy release z GitHub API
+        let release = null;
+        try {
+            release = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Mango-Bot-Builder/releases/latest');
+        } catch(e) {
+            // Jeśli brak release'ów na GitHubie, sprawdź commits
+        }
+
+        // 2. Sprawdź commits z repozytorium
+        let latestCommit = null;
+        try {
+            const commits = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Mango-Bot-Builder/commits?per_page=1');
+            if (Array.isArray(commits) && commits.length > 0) {
+                latestCommit = {
+                    sha: commits[0].sha.substring(0, 7),
+                    message: commits[0].commit.message,
+                    date: commits[0].commit.committer.date
+                };
+            }
+        } catch(e) {}
+
+        // Sprawdź lokalny git commit jeśli jesteśmy w klonie gita
+        let localCommitSha = '';
+        try {
+            const { execSync } = require('child_process');
+            localCommitSha = execSync('git rev-parse --short HEAD', { cwd: __dirname }).toString().trim();
+        } catch(e) {}
+
+        const latestTag = release ? (release.tag_name || release.name) : null;
+        const hasReleaseUpdate = Boolean(latestTag && latestTag.replace(/^v/, '') !== currentVersion.replace(/^v/, ''));
+        const hasGitUpdate = Boolean(latestCommit && localCommitSha && latestCommit.sha !== localCommitSha);
+
+        return {
+            ok: true,
+            currentVersion,
+            localCommitSha,
+            latestRelease: release ? {
+                tag: release.tag_name,
+                name: release.name,
+                body: release.body,
+                url: release.html_url,
+                assets: (release.assets || []).map(a => ({ name: a.name, download_url: a.browser_download_url }))
+            } : null,
+            latestCommit,
+            hasUpdate: hasReleaseUpdate || hasGitUpdate,
+            updateType: hasGitUpdate ? 'git' : (hasReleaseUpdate ? 'release' : 'none')
+        };
+    } catch(err) {
+        return { ok: false, error: err.message };
+    }
+});
+
+ipcMain.handle('apply-git-update', async () => {
+    return new Promise((resolve) => {
+        exec('git pull origin main', { cwd: __dirname }, (error, stdout, stderr) => {
+            if (error) {
+                return resolve({ ok: false, error: stderr || error.message });
+            }
+            resolve({ ok: true, output: stdout });
+        });
+    });
 });
