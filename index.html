@@ -2796,7 +2796,7 @@
                 <div>
                     <label class="dbb-modal-label">Folder zapisu (zostaną tam skopiowane wszystkie bloki i pliki bota)</label>
                     <div style="display:flex; gap:8px; margin-top:4px;">
-                        <input type="text" class="dbb-modal-input" style="flex:1; box-sizing:border-box;" id="inputNewProjectPath" placeholder="/home/rakunek/Dokumenty/Moje/Boty/...">
+                        <input type="text" class="dbb-modal-input" style="flex:1; box-sizing:border-box;" id="inputNewProjectPath" placeholder="Katalog docelowy nowego bota...">
                         <button class="btn-modal-cancel" onclick="browseNewProjectFolder()" style="white-space:nowrap;">📁 Przeglądaj...</button>
                     </div>
                 </div>
@@ -5806,12 +5806,21 @@
             showToast(`Workspace "${title}" utworzony!`, 'success');
         }
 
-        function autoUpdateProjectPath() {
+        let cachedDefaultBotyDir = '';
+        async function getDefaultBotyDir() {
+            if (!cachedDefaultBotyDir) {
+                try { cachedDefaultBotyDir = await ipcRenderer.invoke('get-default-boty-dir'); } catch(e) {}
+            }
+            return cachedDefaultBotyDir || '';
+        }
+
+        async function autoUpdateProjectPath() {
             const name = (document.getElementById('inputNewProjectName').value || '').trim();
             const pathInp = document.getElementById('inputNewProjectPath');
             if (name) {
+                const base = await getDefaultBotyDir();
                 const clean = name.replace(/[<>:"/\\|?*]/g, '_');
-                pathInp.value = `/home/rakunek/Dokumenty/Moje/Boty/${clean}`;
+                pathInp.value = base ? `${base}/${clean}` : clean;
             } else {
                 pathInp.value = '';
             }
@@ -5819,7 +5828,8 @@
 
         async function browseNewProjectFolder() {
             const pathInp = document.getElementById('inputNewProjectPath');
-            const chosen = await ipcRenderer.invoke('pick-directory', pathInp.value || '/home/rakunek/Dokumenty/Moje/Boty');
+            const base = await getDefaultBotyDir();
+            const chosen = await ipcRenderer.invoke('pick-directory', pathInp.value || base);
             if (chosen) {
                 pathInp.value = chosen;
             }

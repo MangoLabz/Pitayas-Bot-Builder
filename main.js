@@ -7,12 +7,23 @@ let mainWindow;
 const runningBotProcesses = new Map();
 
 const APP_DIR = __dirname;
-const BOTY_DIR = '/home/rakunek/Dokumenty/Moje/Boty';
+// Dynamiczny katalog domowy użytkownika (np. /home/nazwa_uzytkownika/Dokumenty/Mango-Boty)
+const os = require('os');
+const USER_HOME = os.homedir();
+const BOTY_DIR = fs.existsSync(path.join(USER_HOME, 'Dokumenty', 'Moje', 'Boty'))
+    ? path.join(USER_HOME, 'Dokumenty', 'Moje', 'Boty')
+    : path.join(USER_HOME, 'Dokumenty', 'Mango-Boty');
+
+// Dane użytkownika w standardowej bezpiecznej lokalizacji ~/.config/mango-bot-builder
+const USER_DATA_DIR = app.getPath('userData');
+if (!fs.existsSync(USER_DATA_DIR)) {
+    try { fs.mkdirSync(USER_DATA_DIR, { recursive: true }); } catch(e) {}
+}
+
 const ROOT_DIR = path.join(BOTY_DIR, 'Mango Bot');
 const BLOCKS_DIR = path.join(APP_DIR, 'blocks');
-const PROJECTS_DIR = path.join(APP_DIR, 'projects');
-const DBB_SETTINGS_PATH = path.join(BOTY_DIR, 'DBB-Linux', 'settings.json');
-const LOCAL_SETTINGS_PATH = path.join(APP_DIR, 'settings.json');
+const PROJECTS_DIR = path.join(USER_DATA_DIR, 'projects');
+const LOCAL_SETTINGS_PATH = path.join(USER_DATA_DIR, 'settings.json');
 
 function loadSettings() {
     let settings = { recent: [] };
@@ -35,8 +46,11 @@ function saveSettings(settings) {
     } catch(e) {}
 }
 
-if (!fs.existsSync(PROJECTS_DIR)) {
-    fs.mkdirSync(PROJECTS_DIR, { recursive: true });
+try {
+    if (!fs.existsSync(PROJECTS_DIR)) fs.mkdirSync(PROJECTS_DIR, { recursive: true });
+    if (!fs.existsSync(BOTY_DIR)) fs.mkdirSync(BOTY_DIR, { recursive: true });
+} catch(e) {
+    console.error('Błąd tworzenia katalogów:', e);
 }
 
 let currentProject = null;
@@ -1111,12 +1125,17 @@ ipcMain.handle('start-bot', (event, arg) => {
         return { ok: false, error: 'Brak tokenu Discord dla bota "' + paths.name + '". Wpisz token w polu na górze lub pliku .env', needToken: true, project: paths.name, dir: paths.dir };
     }
 
-    const nodeModulesPath = path.join(ROOT_DIR, 'node_modules');
+    const possibleNodeModules = [
+        path.join(paths.dir, 'node_modules'),
+        path.join(APP_DIR, 'node_modules'),
+        path.join(ROOT_DIR, 'node_modules')
+    ].filter(p => fs.existsSync(p)).join(':');
+
     const existingNodePath = process.env.NODE_PATH || '';
     const env = Object.assign({}, process.env, {
         TOKEN: effectiveToken,
         DISCORD_TOKEN: effectiveToken,
-        NODE_PATH: nodeModulesPath + (existingNodePath ? ':' + existingNodePath : '')
+        NODE_PATH: (possibleNodeModules ? possibleNodeModules + ':' : '') + existingNodePath
     });
     const cwd = paths.dir;
 
@@ -1392,4 +1411,8 @@ ipcMain.handle('apply-git-update', async () => {
             resolve({ ok: true, output: stdout });
         });
     });
+});
+
+ipcMain.handle('get-default-boty-dir', () => {
+    return BOTY_DIR;
 });
