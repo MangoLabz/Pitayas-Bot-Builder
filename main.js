@@ -1556,6 +1556,40 @@ function fetchJsonFromUrl(url) {
     });
 }
 
+// Porównanie wersji jak w semver: 0.1.0 > 0.1.0-beta.2 > 0.1.0-beta > 0.0.9
+function parseVersion(v) {
+    const [core, pre = ''] = String(v).trim().replace(/^v/i, '').split(/-(.*)/s);
+    return { nums: core.split('.').map(n => parseInt(n, 10) || 0), pre: pre ? pre.split('.') : [] };
+}
+
+function compareVersions(a, b) {
+    const pa = parseVersion(a), pb = parseVersion(b);
+    for (let i = 0; i < Math.max(pa.nums.length, pb.nums.length); i++) {
+        const d = (pa.nums[i] || 0) - (pb.nums[i] || 0);
+        if (d !== 0) return d > 0 ? 1 : -1;
+    }
+    // Wersja bez dopisku (stabilna) jest nowsza niż ta sama z dopiskiem (beta)
+    if (!pa.pre.length || !pb.pre.length) return pa.pre.length === pb.pre.length ? 0 : (pa.pre.length ? -1 : 1);
+    for (let i = 0; i < Math.max(pa.pre.length, pb.pre.length); i++) {
+        const x = pa.pre[i], y = pb.pre[i];
+        if (x === undefined) return -1;
+        if (y === undefined) return 1;
+        const nx = /^\d+$/.test(x), ny = /^\d+$/.test(y);
+        if (nx && ny && +x !== +y) return +x > +y ? 1 : -1;
+        if (nx !== ny) return nx ? -1 : 1;
+        if (x !== y) return x > y ? 1 : -1;
+    }
+    return 0;
+}
+
+// /releases/latest pomija wydania testowe (pre-release) — bierzemy listę i najwyższą wersję
+async function fetchNewestRelease() {
+    const list = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Pitayas-Bot-Builder/releases?per_page=30');
+    const published = (Array.isArray(list) ? list : []).filter(r => !r.draft && (r.tag_name || r.name));
+    published.sort((x, y) => compareVersions(y.tag_name || y.name, x.tag_name || x.name));
+    return published[0] || null;
+}
+
 ipcMain.handle('check-app-update', async () => {
     try {
         const pkg = require('./package.json');
@@ -1564,7 +1598,7 @@ ipcMain.handle('check-app-update', async () => {
         // 1. Sprawdź najnowszy release z GitHub API
         let release = null;
         try {
-            release = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Pitayas-Bot-Builder/releases/latest');
+            release = await fetchNewestRelease();
         } catch(e) {
             // Jeśli brak release'ów na GitHubie, sprawdź commits
         }
@@ -1590,7 +1624,7 @@ ipcMain.handle('check-app-update', async () => {
         } catch(e) {}
 
         const latestTag = release ? (release.tag_name || release.name) : null;
-        const hasReleaseUpdate = Boolean(latestTag && latestTag.replace(/^v/, '') !== currentVersion.replace(/^v/, ''));
+        const hasReleaseUpdate = Boolean(latestTag && compareVersions(latestTag, currentVersion) > 0);
         const hasGitUpdate = Boolean(latestCommit && localCommitSha && latestCommit.sha !== localCommitSha);
 
         return {
