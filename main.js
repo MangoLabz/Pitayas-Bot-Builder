@@ -17,19 +17,30 @@ const BOTY_DIR = fs.existsSync(path.join(USER_HOME, 'Dokumenty', 'Moje', 'Boty')
         ? path.join(USER_HOME, 'Dokumenty', 'Mango-Boty')
         : path.join(USER_HOME, 'Dokumenty', 'Pitaya-Boty');
 
-// Nazwa aplikacji widoczna w systemie (pasek zadań, menu) to "PBB".
-// Dane: ~/.config/pitaya-bot-builder. Jeśli istnieje folder z czasów Mango
-// (~/.config/mango-bot-builder), używamy go dalej, żeby nie zgubić projektów i ustawień.
-const LEGACY_USER_DATA = path.join(app.getPath('appData'), 'mango-bot-builder');
-app.setPath('userData', fs.existsSync(LEGACY_USER_DATA)
-    ? LEGACY_USER_DATA
-    : path.join(app.getPath('appData'), 'pitaya-bot-builder'));
-app.setName('PBB');
+// Pitaya Core: dane w ~/.config/Pitayas/Bot-Builder (projekty, lista ostatnich, logi).
+// Nazwa w systemie (pasek zadań, menu) to "PBB". Przy pierwszym starcie kopiujemy dane
+// z ~/.config/mango-bot-builder albo ~/.config/pitaya-bot-builder — stare foldery zostają.
+const legacy = [];
+for (const old of ['mango-bot-builder', 'pitaya-bot-builder']) {
+    legacy.push(
+        { from: `${old}/settings.json`, to: 'settings.json' },
+        { from: `${old}/projects`, to: 'projects' },
+        { from: `${old}/Local Storage`, to: 'cache/Local Storage' },
+    );
+}
+const core = require('./core').create({
+    id: 'bot-builder',
+    folder: 'Bot-Builder',
+    name: 'PBB',
+    repo: 'MangoLabz/Pitayas-Bot-Builder',
+    appDir: __dirname,
+    legacy,
+});
 if (process.platform === 'linux' && typeof app.setDesktopName === 'function') {
     app.setDesktopName('pitaya-bot-builder.desktop');
 }
 
-const USER_DATA_DIR = app.getPath('userData');
+const USER_DATA_DIR = core.paths.dir;
 if (!fs.existsSync(USER_DATA_DIR)) {
     try { fs.mkdirSync(USER_DATA_DIR, { recursive: true }); } catch(e) {}
 }
@@ -170,7 +181,16 @@ ipcMain.on('win-maximize-toggle', () => {
 });
 ipcMain.on('win-close', () => { if (mainWindow) mainWindow.close(); });
 
-app.whenReady().then(createWindow);
+// Jedna instancja: ponowne uruchomienie pokazuje istniejące okno
+if (core.singleInstance(() => {
+    if (!mainWindow) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+})) {
+    core.registerIpc();
+    app.whenReady().then(createWindow);
+}
 
 app.on('window-all-closed', () => {
     runningBotProcesses.forEach(entry => {
@@ -1527,135 +1547,31 @@ ipcMain.handle('save-workspaces', (event, data) => {
     }
 });
 
-// ═══════ AKTUALIZATOR GITHUB ═══════
-const https = require('https');
-const { exec } = require('child_process');
-
-function fetchJsonFromUrl(url) {
-    return new Promise((resolve, reject) => {
-        const options = {
-            headers: { 'User-Agent': 'Pitaya-Bot-Builder-App' }
-        };
-        https.get(url, options, (res) => {
-            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                return resolve(fetchJsonFromUrl(res.headers.location));
-            }
-            if (res.statusCode !== 200) {
-                return reject(new Error(`HTTP ${res.statusCode}`));
-            }
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    resolve(JSON.parse(data));
-                } catch(e) {
-                    reject(e);
-                }
-            });
-        }).on('error', reject);
-    });
-}
-
-// Porównanie wersji jak w semver: 0.1.0 > 0.1.0-beta.2 > 0.1.0-beta > 0.0.9
-function parseVersion(v) {
-    const [core, pre = ''] = String(v).trim().replace(/^v/i, '').split(/-(.*)/s);
-    return { nums: core.split('.').map(n => parseInt(n, 10) || 0), pre: pre ? pre.split('.') : [] };
-}
-
-function compareVersions(a, b) {
-    const pa = parseVersion(a), pb = parseVersion(b);
-    for (let i = 0; i < Math.max(pa.nums.length, pb.nums.length); i++) {
-        const d = (pa.nums[i] || 0) - (pb.nums[i] || 0);
-        if (d !== 0) return d > 0 ? 1 : -1;
-    }
-    // Wersja bez dopisku (stabilna) jest nowsza niż ta sama z dopiskiem (beta)
-    if (!pa.pre.length || !pb.pre.length) return pa.pre.length === pb.pre.length ? 0 : (pa.pre.length ? -1 : 1);
-    for (let i = 0; i < Math.max(pa.pre.length, pb.pre.length); i++) {
-        const x = pa.pre[i], y = pb.pre[i];
-        if (x === undefined) return -1;
-        if (y === undefined) return 1;
-        const nx = /^\d+$/.test(x), ny = /^\d+$/.test(y);
-        if (nx && ny && +x !== +y) return +x > +y ? 1 : -1;
-        if (nx !== ny) return nx ? -1 : 1;
-        if (x !== y) return x > y ? 1 : -1;
-    }
-    return 0;
-}
-
-// /releases/latest pomija wydania testowe (pre-release) — bierzemy listę i najwyższą wersję
-async function fetchNewestRelease() {
-    const list = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Pitayas-Bot-Builder/releases?per_page=30');
-    const published = (Array.isArray(list) ? list : []).filter(r => !r.draft && (r.tag_name || r.name));
-    published.sort((x, y) => compareVersions(y.tag_name || y.name, x.tag_name || x.name));
-    return published[0] || null;
-}
-
+// ═══════ AKTUALIZATOR GITHUB (Pitaya Core) ═══════
+// Okno oczekuje starego formatu odpowiedzi (latestCommit / latestRelease) — tłumaczymy wynik Core.
 ipcMain.handle('check-app-update', async () => {
-    try {
-        const pkg = require('./package.json');
-        const currentVersion = pkg.version || '1.0.0';
-
-        // 1. Sprawdź najnowszy release z GitHub API
-        let release = null;
-        try {
-            release = await fetchNewestRelease();
-        } catch(e) {
-            // Jeśli brak release'ów na GitHubie, sprawdź commits
-        }
-
-        // 2. Sprawdź commits z repozytorium
-        let latestCommit = null;
-        try {
-            const commits = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Pitayas-Bot-Builder/commits?per_page=1');
-            if (Array.isArray(commits) && commits.length > 0) {
-                latestCommit = {
-                    sha: commits[0].sha.substring(0, 7),
-                    message: commits[0].commit.message,
-                    date: commits[0].commit.committer.date
-                };
-            }
-        } catch(e) {}
-
-        // Sprawdź lokalny git commit jeśli jesteśmy w klonie gita
-        let localCommitSha = '';
-        try {
-            const { execSync } = require('child_process');
-            localCommitSha = execSync('git rev-parse --short HEAD', { cwd: __dirname }).toString().trim();
-        } catch(e) {}
-
-        const latestTag = release ? (release.tag_name || release.name) : null;
-        const hasReleaseUpdate = Boolean(latestTag && compareVersions(latestTag, currentVersion) > 0);
-        const hasGitUpdate = Boolean(latestCommit && localCommitSha && latestCommit.sha !== localCommitSha);
-
-        return {
-            ok: true,
-            currentVersion,
-            localCommitSha,
-            latestRelease: release ? {
-                tag: release.tag_name,
-                name: release.name,
-                body: release.body,
-                url: release.html_url,
-                assets: (release.assets || []).map(a => ({ name: a.name, download_url: a.browser_download_url }))
-            } : null,
-            latestCommit,
-            hasUpdate: hasReleaseUpdate || hasGitUpdate,
-            updateType: hasGitUpdate ? 'git' : (hasReleaseUpdate ? 'release' : 'none')
-        };
-    } catch(err) {
-        return { ok: false, error: err.message };
-    }
+    const res = await core.updater.check();
+    if (!res.ok) return res;
+    const latestCommit = res.mode === 'git' && res.commits && res.commits.length
+        ? { sha: res.commits[0].sha, message: res.commits[0].message, date: res.commits[0].date }
+        : null;
+    return {
+        ok: true,
+        currentVersion: res.currentVersion,
+        localCommitSha: res.localSha || '',
+        latestRelease: res.mode === 'release' && res.latestVersion
+            ? { tag: `v${res.latestVersion}`, name: res.latestVersion, body: res.notes, url: res.url }
+            : null,
+        latestCommit,
+        hasUpdate: res.hasUpdate,
+        updateType: res.hasUpdate ? res.mode : 'none',
+    };
 });
 
 ipcMain.handle('apply-git-update', async () => {
-    return new Promise((resolve) => {
-        exec('git pull origin main', { cwd: __dirname }, (error, stdout, stderr) => {
-            if (error) {
-                return resolve({ ok: false, error: stderr || error.message });
-            }
-            resolve({ ok: true, output: stdout });
-        });
-    });
+    const res = await core.updater.apply();
+    if (res.ok && res.openedBrowser) return { ok: true, output: 'Otwarto stronę z nową wersją w przeglądarce.' };
+    return res.ok ? { ok: true, output: 'Zaktualizowano.' } : { ok: false, error: res.error };
 });
 
 ipcMain.handle('set-token', (event, token) => {
