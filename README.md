@@ -1,2 +1,2 @@
-# Mango-Bot-Builder
-Discord Bot Builder but by Mango Team
+# Pitaya Bot Builder
+Discord Bot Builder but by Pitayas Team

@@ -7,20 +7,37 @@ let mainWindow;
 const runningBotProcesses = new Map();
 
 const APP_DIR = __dirname;
-// Dynamiczny katalog domowy użytkownika (np. /home/nazwa_uzytkownika/Dokumenty/Mango-Boty)
+// Dynamiczny katalog domowy użytkownika (np. /home/nazwa_uzytkownika/Dokumenty/Pitaya-Boty)
 const os = require('os');
 const USER_HOME = os.homedir();
+// Folder z czasów Mango ("Mango-Boty") nadal działa, jeśli już istnieje — nic się nie gubi.
 const BOTY_DIR = fs.existsSync(path.join(USER_HOME, 'Dokumenty', 'Moje', 'Boty'))
     ? path.join(USER_HOME, 'Dokumenty', 'Moje', 'Boty')
-    : path.join(USER_HOME, 'Dokumenty', 'Mango-Boty');
+    : fs.existsSync(path.join(USER_HOME, 'Dokumenty', 'Mango-Boty'))
+        ? path.join(USER_HOME, 'Dokumenty', 'Mango-Boty')
+        : path.join(USER_HOME, 'Dokumenty', 'Pitaya-Boty');
 
-// Dane użytkownika w standardowej bezpiecznej lokalizacji ~/.config/mango-bot-builder
+// Nazwa aplikacji widoczna w systemie (pasek zadań, menu) to "PBB".
+// Dane: ~/.config/pitaya-bot-builder. Jeśli istnieje folder z czasów Mango
+// (~/.config/mango-bot-builder), używamy go dalej, żeby nie zgubić projektów i ustawień.
+const LEGACY_USER_DATA = path.join(app.getPath('appData'), 'mango-bot-builder');
+app.setPath('userData', fs.existsSync(LEGACY_USER_DATA)
+    ? LEGACY_USER_DATA
+    : path.join(app.getPath('appData'), 'pitaya-bot-builder'));
+app.setName('PBB');
+if (process.platform === 'linux' && typeof app.setDesktopName === 'function') {
+    app.setDesktopName('pitaya-bot-builder.desktop');
+}
+
 const USER_DATA_DIR = app.getPath('userData');
 if (!fs.existsSync(USER_DATA_DIR)) {
     try { fs.mkdirSync(USER_DATA_DIR, { recursive: true }); } catch(e) {}
 }
 
-const ROOT_DIR = path.join(BOTY_DIR, 'Mango Bot');
+// Domyślny projekt: "Pitaya Bot" (albo dotychczasowy "Mango Bot", jeśli już istnieje)
+const ROOT_DIR = fs.existsSync(path.join(BOTY_DIR, 'Mango Bot'))
+    ? path.join(BOTY_DIR, 'Mango Bot')
+    : path.join(BOTY_DIR, 'Pitaya Bot');
 const BLOCKS_DIR = path.join(APP_DIR, 'blocks');
 const PROJECTS_DIR = path.join(USER_DATA_DIR, 'projects');
 const LOCAL_SETTINGS_PATH = path.join(USER_DATA_DIR, 'settings.json');
@@ -66,6 +83,13 @@ function getProjectPaths(projNameOrPath) {
         if (match && fs.existsSync(match)) {
             baseDir = match;
         }
+    }
+
+    if (!baseDir) {
+        const cand1 = path.join(BOTY_DIR, projNameOrPath);
+        const cand2 = path.join(PROJECTS_DIR, projNameOrPath);
+        if (fs.existsSync(cand1)) baseDir = cand1;
+        else if (fs.existsSync(cand2)) baseDir = cand2;
     }
 
     if (!baseDir) return null;
@@ -116,9 +140,10 @@ function createWindow() {
         height: 1050,
         minWidth: 1100,
         minHeight: 700,
-        backgroundColor: '#0c0d10',
-        title: "Mango Bot Builder",
-        icon: path.join(__dirname, '..', 'icon.png'),
+        backgroundColor: '#1e1f22',
+        title: "PBB",
+        frame: false,
+        icon: path.join(__dirname, 'build', 'icons', 'icon.png'),
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
@@ -127,7 +152,23 @@ function createWindow() {
 
     mainWindow.setMenuBarVisibility(false);
     mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+    const sendMaxState = () => {
+        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('win-maximized', mainWindow.isMaximized());
+    };
+    mainWindow.on('maximize', sendMaxState);
+    mainWindow.on('unmaximize', sendMaxState);
+    mainWindow.webContents.on('did-finish-load', sendMaxState);
 }
+
+// Własny pasek tytułu (okno bez systemowej ramki, jak w DBB)
+ipcMain.on('win-minimize', () => { if (mainWindow) mainWindow.minimize(); });
+ipcMain.on('win-maximize-toggle', () => {
+    if (!mainWindow) return;
+    if (mainWindow.isMaximized()) mainWindow.unmaximize();
+    else mainWindow.maximize();
+});
+ipcMain.on('win-close', () => { if (mainWindow) mainWindow.close(); });
 
 app.whenReady().then(createWindow);
 
@@ -152,9 +193,121 @@ function resolveBlockProp(prop, blockData) {
     return [];
 }
 
+function getNodeModulesPaths(projectDir) {
+    const list = [];
+    if (projectDir) {
+        list.push(path.join(projectDir, 'node_modules'));
+    }
+    list.push(path.join(APP_DIR, 'node_modules'));
+    list.push(path.join(__dirname, 'node_modules'));
+    if (typeof ROOT_DIR === 'string' && ROOT_DIR) {
+        list.push(path.join(ROOT_DIR, 'node_modules'));
+    }
+
+    if (BOTY_DIR && fs.existsSync(BOTY_DIR)) {
+        try {
+            const entries = fs.readdirSync(BOTY_DIR, { withFileTypes: true });
+            for (const ent of entries) {
+                if (ent.isDirectory()) {
+                    const nm = path.join(BOTY_DIR, ent.name, 'node_modules');
+                    if (fs.existsSync(path.join(nm, 'discord.js'))) {
+                        list.push(nm);
+                    }
+                }
+            }
+        } catch(e) {}
+    }
+
+    const valid = [];
+    for (const p of list) {
+        try {
+            if (fs.existsSync(p) && !valid.includes(p)) {
+                valid.push(p);
+            }
+        } catch(e) {}
+    }
+    return valid;
+}
+
+// Projekty z oryginalnego DBB mają własny bot.js (runtime DBB) - nie wolno go nadpisywać
+function isCustomBotFile(botPath) {
+    try {
+        if (!fs.existsSync(botPath) || fs.statSync(botPath).size === 0) return false;
+        const head = fs.readFileSync(botPath, 'utf8').slice(0, 400);
+        return !head.includes('Pitaya Bot Builder - Wygenerowany') && !head.includes('Mango Bot Builder - Wygenerowany');
+    } catch (e) {
+        return false;
+    }
+}
+
+// Zapisuje bot.js tylko, gdy to plik wygenerowany przez PBB (lub go brak). Zwraca true, jeśli zapisano.
+function writeBotFile(paths) {
+    if (isCustomBotFile(paths.bot)) return false;
+    fs.writeFileSync(paths.bot, getBotJSContent(paths), 'utf-8');
+    return true;
+}
+
+// Zapisuje token w formacie DBB (data/token.txt) oraz w .env
+function saveProjectToken(paths, token) {
+    if (!token || !token.trim()) return;
+    const clean = token.trim();
+    try {
+        const dDir = path.dirname(paths.tokenTxt);
+        if (!fs.existsSync(dDir)) fs.mkdirSync(dDir, { recursive: true });
+        fs.writeFileSync(paths.tokenTxt, clean, 'utf-8');
+    } catch (e) {}
+    try { fs.writeFileSync(paths.env, `TOKEN=${clean}\n`, 'utf-8'); } catch (e) {}
+}
+
+// Diagnostyka projektu przed startem bota: uprawnienia i moduły zainstalowane pod Windows (Proton)
+function diagnoseProject(projectDir) {
+    const warnings = [];
+    const notWritable = [];
+    for (const rel of ['.', 'data', 'data/token.txt', 'node_modules', 'package.json', 'package-lock.json']) {
+        const full = path.join(projectDir, rel);
+        if (!fs.existsSync(full)) continue;
+        try { fs.accessSync(full, fs.constants.W_OK); } catch (e) { notWritable.push(rel); }
+    }
+    if (notWritable.length) {
+        warnings.push(
+            `⚠️ Brak uprawnień do zapisu w projekcie (${notWritable.join(', ')}). Bot nie zapisze danych ani nie doinstaluje paczek.\n` +
+            `   Napraw w terminalu: sudo chown -R "$USER:$USER" "${projectDir}"`
+        );
+    }
+    const intentsFile = path.join(projectDir, 'data', 'INTENTS.txt');
+    if (fs.existsSync(path.join(projectDir, 'bot.js')) && !fs.existsSync(intentsFile)) {
+        try {
+            fs.writeFileSync(intentsFile, 'ALL_INTENTS', 'utf8');
+            warnings.push('ℹ️ Brakowało pliku data/INTENTS.txt — utworzono go z ALL_INTENTS (potrzebne m.in. do eventów kanałów głosowych). Włącz intenty uprzywilejowane w Discord Developer Portal.');
+        } catch (e) {
+            warnings.push('⚠️ Brak pliku data/INTENTS.txt — bot nie dostanie m.in. eventów kanałów głosowych. Utwórz go z treścią: ALL_INTENTS');
+        }
+    }
+    const nm = path.join(projectDir, 'node_modules');
+    try {
+        const esb = path.join(nm, '@esbuild');
+        const napi = path.join(nm, '@napi-rs');
+        const hasWin = (dir) => fs.existsSync(dir) && fs.readdirSync(dir).some(d => d.includes('win32'));
+        const hasLinux = (dir) => fs.existsSync(dir) && fs.readdirSync(dir).some(d => d.includes('linux'));
+        if ((hasWin(esb) && !hasLinux(esb)) || (hasWin(napi) && !hasLinux(napi)) ||
+            (fs.existsSync(path.join(napi, 'canvas')) && !hasLinux(napi))) {
+            warnings.push(
+                '⚠️ node_modules zostały zainstalowane pod Windows (DBB przez Proton) — brakuje modułów natywnych dla Linuxa (np. @napi-rs/canvas, esbuild).\n' +
+                `   Przeinstaluj w terminalu: cd "${projectDir}" && rm -rf node_modules package-lock.json && npm install`
+            );
+        }
+    } catch (e) {}
+    return warnings;
+}
+
+function getCurrentBlocksDir() {
+    const p = currentProject ? getProjectPaths(currentProject) : null;
+    return (p && p.blocksDir && fs.existsSync(p.blocksDir)) ? p.blocksDir : BLOCKS_DIR;
+}
+
 function getBotJSContent() {
     return `/**
- * Mango Bot Builder - Wygenerowany plik wykonywalny (bot.js)
+ * Pitaya Bot Builder - Wygenerowany plik wykonywalny (bot.js)
  * Kompatybilny z blokami Discord Bot Builder (DBB)
  */
 require('dotenv').config();
@@ -527,6 +680,32 @@ const blockContext = {
     commands: new Collection(),
     jobs: {},
     _tempData: {},
+    fs,
+
+    end(error, stopExecution = true, log = true) {
+        if (error && log !== false) {
+            console.error('[DBB ERROR]:', error.message || error);
+        }
+        return error;
+    },
+
+    error(msg) {
+        console.error('[DBB ERROR]:', msg);
+    },
+
+    log(...args) {
+        console.log(...args);
+    },
+
+    replaceData(name, value, target, type) {
+        return DataManager.setData(name, value, target, type);
+    },
+
+    setPrefix(prefix) {
+        if (DBB) DBB.prefix = prefix;
+    },
+
+    requireRestart() {},
 
     getDBB() {
         return DBB;
@@ -839,7 +1018,7 @@ client.once(Events.ClientReady, async (readyClient) => {
 // Logowanie bota
 const token = process.env.TOKEN || process.env.DISCORD_TOKEN;
 if (!token) {
-    console.error('❌ Brak tokenu bota! Podaj token w Mango Bot Builderze lub w pliku .env (TOKEN=...)');
+    console.error('❌ Brak tokenu bota! Podaj token w Pitaya Bot Builderze lub w pliku .env (TOKEN=...)');
     process.exit(1);
 }
 
@@ -858,7 +1037,7 @@ ipcMain.handle('get-projects', () => {
     // Tylko prawdziwe, istniejące projekty z listy recent
     const recentList = settings.recent.map((recPath, i) => {
         const pName = path.basename(recPath);
-        let initials = pName.split(/[\s-_]+/).map(w => w[0]).join('').toUpperCase().slice(0, 3);
+        let initials = pName.split(/[\s-_]+/).filter(Boolean).map(w => w[0]).join('-').toUpperCase().slice(0, 5);
         if (!initials) initials = pName.slice(0, 2).toUpperCase();
         let wsCount = 0;
         try {
@@ -881,6 +1060,7 @@ ipcMain.handle('get-projects', () => {
 
     return {
         recent: recentList,
+        list: recentList.map(r => r.path),
         current: currPaths ? currPaths.name : null,
         currentPath: currPaths ? currPaths.dir : null,
         savedToken: currPaths ? currPaths.savedToken : ''
@@ -928,11 +1108,13 @@ ipcMain.handle('open-project-dialog', async () => {
 
     currentProject = targetDir;
     const p = getProjectPaths(currentProject);
+    if (!p) return { ok: false, error: 'Nie można otworzyć folderu: ' + targetDir };
     return { ok: true, current: p.name, path: targetDir, savedToken: p.savedToken };
 });
 
 ipcMain.handle('switch-project', (event, projNameOrPath) => {
     const paths = getProjectPaths(projNameOrPath);
+    if (!paths) return { ok: false, error: 'Nie znaleziono projektu: ' + projNameOrPath };
     currentProject = paths.dir;
 
     const settings = loadSettings();
@@ -984,7 +1166,13 @@ ipcMain.handle('create-project', (event, payload) => {
         fs.writeFileSync(dataPath, JSON.stringify(defaultData, null, 4), 'utf8');
     }
 
-    // 5. token.txt
+    // 5. INTENTS.txt (jak w szablonie DBB)
+    const intentsPath = path.join(destData, 'INTENTS.txt');
+    if (!fs.existsSync(intentsPath)) {
+        fs.writeFileSync(intentsPath, 'ALL_INTENTS', 'utf8');
+    }
+
+    // 5b. token.txt
     const tokenPath = path.join(destData, 'token.txt');
     if (!fs.existsSync(tokenPath)) {
         fs.writeFileSync(tokenPath, '', 'utf8');
@@ -1007,8 +1195,7 @@ ipcMain.handle('create-project', (event, payload) => {
 
     // 7. bot.js
     const paths = getProjectPaths(destDir);
-    const botCode = getBotJSContent(paths);
-    fs.writeFileSync(paths.bot, botCode, 'utf8');
+    writeBotFile(paths);
 
     // 8. .env
     if (!fs.existsSync(paths.env)) {
@@ -1040,6 +1227,7 @@ ipcMain.handle('remove-recent', (event, recPath) => {
 
 ipcMain.handle('delete-project', (event, projName) => {
     const paths = getProjectPaths(projName);
+    if (!paths) return { ok: false, error: 'Nie znaleziono projektu' };
     if (paths.dir === ROOT_DIR) return { ok: false, error: 'Nie można usunąć głównego projektu' };
     if (fs.existsSync(paths.dir)) {
         fs.rmSync(paths.dir, { recursive: true, force: true });
@@ -1057,12 +1245,10 @@ ipcMain.handle('generate-bot', (event, token) => {
     try {
         if (!currentProject) return { ok: false, error: 'Brak otwartego projektu' };
         const paths = getProjectPaths(currentProject);
-        const code = getBotJSContent(paths);
-        fs.writeFileSync(paths.bot, code, 'utf-8');
-        if (token && token.trim()) {
-            fs.writeFileSync(paths.env, `TOKEN=${token.trim()}\n`, 'utf-8');
-        }
-        return { ok: true, path: paths.bot };
+        if (!paths) return { ok: false, error: 'Nie znaleziono projektu' };
+        const written = writeBotFile(paths);
+        saveProjectToken(paths, token);
+        return { ok: true, path: paths.bot, keptOriginal: !written };
     } catch (err) {
         console.error('[BŁĄD GENEROWANIA bot.js]:', err);
         return { ok: false, error: err.message };
@@ -1107,39 +1293,56 @@ ipcMain.handle('start-bot', (event, arg) => {
         return { ok: false, status: 'already_running', project: paths.name, dir: paths.dir, runningList: getRunningBotsList() };
     }
 
-    // Upewnij się, że bot.js istnieje i nie jest pusty
-    if (!fs.existsSync(paths.bot) || fs.statSync(paths.bot).size === 0) {
-        fs.writeFileSync(paths.bot, getBotJSContent(paths), 'utf-8');
+    // Generuj aktualny bot.js (oryginalny runtime DBB zostaje nietknięty)
+    try {
+        writeBotFile(paths);
+    } catch (e) {
+        console.error('[BŁĄD ZAPISU bot.js]:', e.message);
     }
 
     // Ustal właściwy token dla TEGO projektu
     let effectiveToken = (explicitToken && explicitToken.trim()) ? explicitToken.trim() : (paths.savedToken || '');
 
     if (explicitToken && explicitToken.trim()) {
-        fs.writeFileSync(paths.env, `TOKEN=${explicitToken.trim()}\n`, 'utf-8');
+        saveProjectToken(paths, explicitToken);
         effectiveToken = explicitToken.trim();
     }
 
     // Sprawdź czy token jest dostępny
     if (!effectiveToken) {
-        return { ok: false, error: 'Brak tokenu Discord dla bota "' + paths.name + '". Wpisz token w polu na górze lub pliku .env', needToken: true, project: paths.name, dir: paths.dir };
+        return { ok: false, error: 'Brak tokenu Discord dla bota "' + paths.name + '". Wpisz token w polu na górze lub w pliku .env', needToken: true, project: paths.name, dir: paths.dir };
     }
 
-    const possibleNodeModules = [
-        path.join(paths.dir, 'node_modules'),
-        path.join(APP_DIR, 'node_modules'),
-        path.join(ROOT_DIR, 'node_modules')
-    ].filter(p => fs.existsSync(p)).join(':');
+    const nmPaths = getNodeModulesPaths(paths.dir);
+    const projNm = path.join(paths.dir, 'node_modules');
+    if (!fs.existsSync(projNm) && nmPaths.length > 0) {
+        try {
+            fs.symlinkSync(nmPaths[0], projNm, 'dir');
+            if (!nmPaths.includes(projNm)) nmPaths.unshift(projNm);
+        } catch(e) {
+            console.warn('[SYM-LINK WARN]:', e.message);
+        }
+    }
 
     const existingNodePath = process.env.NODE_PATH || '';
+    const nodePathStr = [...nmPaths, existingNodePath].filter(Boolean).join(':');
+
     const env = Object.assign({}, process.env, {
         TOKEN: effectiveToken,
         DISCORD_TOKEN: effectiveToken,
-        NODE_PATH: (possibleNodeModules ? possibleNodeModules + ':' : '') + existingNodePath
+        NODE_PATH: nodePathStr
     });
     const cwd = paths.dir;
 
-    const child = spawn('node', [paths.bot], { cwd, env });
+    const diag = diagnoseProject(paths.dir);
+    if (mainWindow && diag.length) {
+        diag.forEach(msg => mainWindow.webContents.send('bot-log', {
+            projectDir: paths.dir, projectName: paths.name, message: msg, type: 'stderr'
+        }));
+    }
+
+    // --unhandled-rejections=warn: jeden błąd w bloku (np. pusta wiadomość) nie zabija całego bota
+    const child = spawn('node', ['--unhandled-rejections=warn', paths.bot], { cwd, env });
 
     runningBotProcesses.set(paths.dir, {
         process: child,
@@ -1150,22 +1353,26 @@ ipcMain.handle('start-bot', (event, arg) => {
     });
 
     child.stdout.on('data', (data) => {
+        const text = data.toString();
+        process.stdout.write(`[BOT:${paths.name}] ${text}`);
         if (mainWindow) {
             mainWindow.webContents.send('bot-log', {
                 projectDir: paths.dir,
                 projectName: paths.name,
-                message: data.toString(),
+                message: text,
                 type: 'stdout'
             });
         }
     });
 
     child.stderr.on('data', (data) => {
+        const text = data.toString();
+        process.stderr.write(`[BOT:${paths.name} ERROR] ${text}`);
         if (mainWindow) {
             mainWindow.webContents.send('bot-log', {
                 projectDir: paths.dir,
                 projectName: paths.name,
-                message: data.toString(),
+                message: text,
                 type: 'stderr'
             });
         }
@@ -1181,6 +1388,7 @@ ipcMain.handle('start-bot', (event, arg) => {
                 code: code,
                 runningList: getRunningBotsList()
             });
+            mainWindow.webContents.send('bot-status', runningBotProcesses.size > 0);
         }
     });
 
@@ -1191,6 +1399,7 @@ ipcMain.handle('start-bot', (event, arg) => {
             running: true,
             runningList: getRunningBotsList()
         });
+        mainWindow.webContents.send('bot-status', true);
     }
 
     return { ok: true, status: 'started', project: paths.name, dir: paths.dir, runningList: getRunningBotsList() };
@@ -1213,6 +1422,7 @@ ipcMain.handle('stop-bot', (event, projNameOrPath) => {
                 running: false,
                 runningList: getRunningBotsList()
             });
+            mainWindow.webContents.send('bot-status', runningBotProcesses.size > 0);
         }
         return { ok: true, status: 'stopped', project: paths.name, dir: paths.dir, runningList: getRunningBotsList() };
     }
@@ -1235,12 +1445,13 @@ ipcMain.handle('stop-all-bots', () => {
 
 // Ładowanie bloków z folderu /blocks/
 ipcMain.handle('get-installed-blocks', () => {
-    const files = fs.readdirSync(BLOCKS_DIR).filter(f => f.endsWith('.js'));
+    const blocksDir = getCurrentBlocksDir();
+    const files = fs.readdirSync(blocksDir).filter(f => f.endsWith(".js"));
     const loadedBlocks = [];
 
     for (const file of files) {
         try {
-            const filePath = path.join(BLOCKS_DIR, file);
+            const filePath = path.join(blocksDir, file);
             delete require.cache[require.resolve(filePath)];
             const blockModule = require(filePath);
 
@@ -1273,7 +1484,7 @@ ipcMain.handle('get-installed-blocks', () => {
 // Dynamiczna ewaluacja schematu bloku na podstawie jego aktualnych opcji/wejść/wyjść
 ipcMain.handle('evaluate-block-schema', (event, blockData) => {
     try {
-        const filePath = path.join(BLOCKS_DIR, `${blockData.name}.js`);
+        const filePath = path.join(getCurrentBlocksDir(), `${blockData.name}.js`);
         if (!fs.existsSync(filePath)) return null;
         const blockModule = require(filePath);
         return {
@@ -1323,7 +1534,7 @@ const { exec } = require('child_process');
 function fetchJsonFromUrl(url) {
     return new Promise((resolve, reject) => {
         const options = {
-            headers: { 'User-Agent': 'Mango-Bot-Builder-App' }
+            headers: { 'User-Agent': 'Pitaya-Bot-Builder-App' }
         };
         https.get(url, options, (res) => {
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
@@ -1411,6 +1622,44 @@ ipcMain.handle('apply-git-update', async () => {
             resolve({ ok: true, output: stdout });
         });
     });
+});
+
+ipcMain.handle('set-token', (event, token) => {
+    if (!currentProject) return { ok: false, error: 'Brak otwartego projektu' };
+    const paths = getProjectPaths(currentProject);
+    if (!paths) return { ok: false, error: 'Nie znaleziono projektu' };
+    try {
+        if (token && token.trim()) {
+            saveProjectToken(paths, token);
+        } else {
+            fs.writeFileSync(paths.tokenTxt, '', 'utf-8');
+            if (fs.existsSync(paths.env)) fs.writeFileSync(paths.env, 'TOKEN=\n', 'utf-8');
+        }
+        return { ok: true };
+    } catch (e) {
+        return { ok: false, error: e.message };
+    }
+});
+
+// Link zaproszenia jak w DBB (ID aplikacji = pierwsza część tokenu w base64)
+ipcMain.handle('get-bot-invite', () => {
+    const paths = currentProject ? getProjectPaths(currentProject) : null;
+    const token = paths ? paths.savedToken : '';
+    if (!token) return { ok: false, error: 'Ustaw najpierw token bota (Bot → Set Bot Token)' };
+    try {
+        const clientId = Buffer.from(token.split('.')[0], 'base64').toString('utf8');
+        if (!/^\d{15,22}$/.test(clientId)) return { ok: false, error: 'Nieprawidłowy token bota' };
+        return { ok: true, url: `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=8&scope=bot%20applications.commands` };
+    } catch (e) {
+        return { ok: false, error: e.message };
+    }
+});
+
+ipcMain.handle('open-path', async (event, targetPath) => {
+    const { shell } = require('electron');
+    if (!targetPath || !fs.existsSync(targetPath)) return { ok: false };
+    const err = await shell.openPath(targetPath);
+    return { ok: !err, error: err };
 });
 
 ipcMain.handle('get-default-boty-dir', () => {

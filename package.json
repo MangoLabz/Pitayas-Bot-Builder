@@ -1,13 +1,86 @@
 {
-  "name": "mango-bot-builder",
-  "version": "1.0.0",
-  "description": "Discord Bot Builder Alternative UI for Linux",
+  "name": "pitaya-bot-builder",
+  "version": "1.1.0",
+  "description": "Pitaya Bot Builder — wizualny kreator botów Discord dla Linuxa",
   "main": "main.js",
   "scripts": {
     "start": "electron --no-sandbox .",
-    "builder": "electron --no-sandbox ."
+    "builder": "electron --no-sandbox .",
+    "dist": "electron-builder --linux rpm AppImage",
+    "dist:rpm": "electron-builder --linux rpm",
+    "dist:appimage": "electron-builder --linux AppImage"
   },
   "devDependencies": {
-    "electron": "^34.2.0"
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3"
+  },
+  "allowScripts": {
+    "electron@44.5.1": true
+  },
+  "productName": "PBB",
+  "author": {
+    "name": "Pitayas",
+    "email": "inbox@rakunek.com"
+  },
+  "homepage": "https://github.com/MangoLabz/Mango-Bot-Builder",
+  "desktopName": "pitaya-bot-builder.desktop",
+  "build": {
+    "appId": "com.pitayas.pbb",
+    "productName": "PBB",
+    "copyright": "Copyright © 2026 Pitayas",
+    "asar": false,
+    "directories": {
+      "output": "dist/release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "package.json",
+      "blocks/**/*",
+      "build/icons/**/*",
+      "!**/*.map"
+    ],
+    "linux": {
+      "executableName": "pitaya-bot-builder",
+      "icon": "build/icons",
+      "category": "Development",
+      "synopsis": "Wizualny kreator botów Discord",
+      "maintainer": "Pitayas <inbox@rakunek.com>",
+      "vendor": "Pitayas",
+      "target": [
+        "rpm",
+        "AppImage"
+      ],
+      "executableArgs": [
+        "--no-sandbox"
+      ],
+      "desktop": {
+        "entry": {
+          "Name": "PBB",
+          "GenericName": "Pitaya Bot Builder",
+          "Comment": "Pitaya Bot Builder — wizualny kreator botów Discord",
+          "Keywords": "discord;bot;builder;pitaya;pbb;",
+          "StartupWMClass": "pitaya-bot-builder",
+          "Terminal": "false"
+        }
+      }
+    },
+    "rpm": {
+      "packageName": "pitaya-bot-builder",
+      "depends": [
+        "nodejs",
+        "libnotify",
+        "libXScrnSaver",
+        "nss",
+        "libsecret"
+      ],
+      "fpm": [
+        "--replaces=mango-bot-builder"
+      ]
+    },
+    "appImage": {
+      "artifactName": "PBB-${version}-${arch}.AppImage"
+    }
   }
 }

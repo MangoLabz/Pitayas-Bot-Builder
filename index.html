@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Mango Bot Builder</title>
+    <title>PBB</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -412,13 +412,21 @@
             background: var(--bg-overlay);
         }
 
-        .ws-item:hover .ws-actions { opacity: 1; }
+        .ws-item:hover .ws-actions { opacity: 1; pointer-events: auto; }
         .ws-actions {
-            margin-left: auto;
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
+            padding: 2px 4px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-surface);
+            box-shadow: -10px 0 10px var(--bg-surface);
             opacity: 0;
+            pointer-events: none;
             transition: opacity var(--transition-fast);
         }
 
@@ -862,7 +870,6 @@
         .dbb-card {
             position: absolute;
             min-width: 250px;
-            max-height: 440px;
             height: auto;
             background: #1b1c24;
             border: 1.5px solid rgba(255, 255, 255, 0.08);
@@ -1046,13 +1053,13 @@
         .dbb-ports-col.inputs {
             align-items: flex-start;
             padding-left: 0;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: none !important;
         }
 
         .dbb-ports-col.outputs {
             align-items: flex-end;
             padding-right: 0;
-            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: none !important;
             margin-left: auto;
         }
 
@@ -1071,19 +1078,15 @@
             box-sizing: border-box;
         }
 
+        /* Ukryj pasek scrolla całkowicie (brak paska po boku) */
         .dbb-center-scroll::-webkit-scrollbar {
-            width: 6px;
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
-        .dbb-center-scroll::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.25);
-            border-radius: 4px;
-        }
-        .dbb-center-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-        .dbb-center-scroll::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
+        .dbb-center-scroll {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
         }
 
         /* Uchwyty zmiany rozmiaru bloków (narożnik, prawa krawędź, dolna krawędź) */
@@ -1215,18 +1218,46 @@
         .port-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-size: 11px;
             color: #a0a4b8;
             position: relative;
-            padding: 2px 4px;
+            padding: 5px 8px;
             font-weight: 500;
             cursor: pointer;
-            transition: color var(--transition-fast);
+            transition: all 120ms ease;
             white-space: nowrap;
+            border-radius: 6px;
+            user-select: none;
         }
         .port-item:hover {
             color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        body.is-wiring .port-item {
+            cursor: crosshair;
+        }
+        body.is-wiring .dbb-ports-col.inputs .port-item {
+            background: rgba(88, 101, 242, 0.1);
+            border: 1px dashed rgba(88, 101, 242, 0.4);
+        }
+        body.is-wiring .dbb-ports-col.inputs .port-item:hover,
+        .port-item.wire-target-hover {
+            background: rgba(88, 101, 242, 0.35) !important;
+            border-color: #5865f2 !important;
+            color: #fff !important;
+            transform: scale(1.06);
+            box-shadow: 0 0 12px rgba(88, 101, 242, 0.7);
+        }
+        .port-item.connecting-source {
+            background: rgba(255, 94, 151, 0.25) !important;
+            border: 1.5px solid #ff5e97 !important;
+            color: #fff !important;
+            animation: pulse-source 1s infinite alternate;
+        }
+        @keyframes pulse-source {
+            0% { box-shadow: 0 0 4px rgba(255, 94, 151, 0.4); }
+            100% { box-shadow: 0 0 14px rgba(255, 94, 151, 0.9); }
         }
 
         .dbb-ports-col.inputs .port-item {
@@ -1247,21 +1278,31 @@
         }
 
         .port-dot {
-            width: 13px;
-            height: 13px;
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
             display: inline-block;
             cursor: pointer;
-            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+            transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             flex-shrink: 0;
-            box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Duży niewidzialny hit-box wokół kropki (28px) dla super łatwego trafiania myszką */
+        .port-dot::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            background: transparent;
         }
 
         .port-dot::after {
             content: '';
             position: absolute;
-            inset: -4px;
+            inset: -5px;
             border-radius: 50%;
             border: 2px solid transparent;
             transition: border-color var(--transition-fast);
@@ -1699,7 +1740,7 @@
         /* ═══════════════ TOAST NOTIFICATIONS ═══════════════ */
         .toast-container {
             position: fixed;
-            top: 64px;
+            top: 96px;
             right: 16px;
             display: flex;
             flex-direction: column;
@@ -1805,18 +1846,19 @@
             z-index: 1000;
         }
         .dbb-app-icon {
-            width: 22px;
-            height: 22px;
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            background: transparent;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
             margin-right: 12px;
-            color: #fff;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+            transition: transform 120ms ease;
+        }
+        .dbb-app-icon:hover {
+            transform: scale(1.1);
         }
         .dbb-nav-menu {
             display: flex;
@@ -2193,17 +2235,21 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
         .home-logo-circle {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
+            width: 72px;
+            height: 72px;
+            border-radius: 20px;
             background: radial-gradient(circle, #2a2c44 0%, #131422 100%);
-            border: 2px solid rgba(255,255,255,0.15);
+            border: 2px solid rgba(255, 140, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            margin-bottom: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            margin-bottom: 14px;
+            box-shadow: 0 8px 24px rgba(255, 140, 0, 0.2);
+            transition: transform 150ms ease, box-shadow 150ms ease;
+        }
+        .home-logo-circle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 28px rgba(255, 140, 0, 0.35);
         }
         .home-app-title {
             font-size: 13px;
@@ -2520,18 +2566,710 @@
             background: #4752c4;
         }
 
+
+        /* ═══════════════════════════════════════════════════════════════
+           PITAYA THEME — własna identyfikacja wizualna Pitaya Bot Builder
+           ═══════════════════════════════════════════════════════════════ */
+        :root {
+            --m-bg: #121116;
+            --m-chrome: #17161c;
+            --m-panel: #1c1b22;
+            --m-surface: #23222a;
+            --m-item: #2a2932;
+            --m-item-hover: #32313b;
+            --m-line: rgba(255,255,255,0.06);
+            --m-line-strong: rgba(255,255,255,0.11);
+            --m-canvas: #141318;
+            --m-block: #24232b;
+            --m-block-head: #2e2d36;
+            --m-field: #17161c;
+
+            --m-accent: #ff9f1c;
+            --m-accent-2: #ff6b3d;
+            --m-accent-soft: rgba(255,159,28,0.14);
+            --m-accent-glow: rgba(255,140,40,0.35);
+            --m-grad: linear-gradient(135deg, #ffb52e 0%, #ff7a3d 100%);
+            --m-leaf: #4cc38a;
+            --m-danger: #ff5d73;
+
+            --m-text: #eeedf3;
+            --m-text-2: #c2c0cc;
+            --m-text-3: #8e8c9b;
+
+            --port-action: #ffb020;
+            --port-text: #c77dff;
+            --port-object: #4ea8ff;
+            --port-number: #ff7a59;
+            --port-boolean: #ff5d73;
+            --port-list: #ffd166;
+            --port-date: #2dd4bf;
+            --port-unspecified: #8b8a97;
+            --port-undefined: #8b8a97;
+            --port-null: #8b8a97;
+
+            --bg-base: var(--m-bg);
+            --bg-canvas: var(--m-canvas);
+            --bg-surface: var(--m-panel);
+            --bg-elevated: var(--m-surface);
+            --bg-overlay: var(--m-item-hover);
+            --bg-input: var(--m-field);
+            --accent: var(--m-accent);
+            --accent-hover: #ffb347;
+            --accent-glow: var(--m-accent-glow);
+            --accent-green: var(--m-leaf);
+            --accent-red: var(--m-danger);
+            --text-primary: var(--m-text);
+            --text-secondary: var(--m-text-2);
+            --text-muted: var(--m-text-3);
+            --border-subtle: var(--m-line);
+            --border-default: var(--m-line-strong);
+            --radius-sm: 8px;
+            --radius-md: 10px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+        }
+
+        * { font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; }
+        body { background: var(--m-bg); color: var(--m-text-2); }
+        .ico { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; display: inline-block; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); background-clip: padding-box; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::selection { background: rgba(255,159,28,0.35); }
+
+        /* ───── Pasek tytułu / menu ───── */
+        .dbb-top-nav {
+            background: var(--m-chrome) !important;
+            border-bottom: 1px solid var(--m-line) !important;
+            height: 40px !important;
+            -webkit-app-region: drag; position: relative; padding: 0 0 0 12px !important;
+        }
+        .dbb-app-icon { width: 22px !important; height: 22px !important; margin-right: 10px !important; }
+        .dbb-app-icon, .dbb-nav-menu, .dbb-win-controls { -webkit-app-region: no-drag; position: relative; z-index: 2; }
+        .dbb-nav-menu { gap: 2px !important; }
+        .dbb-menu-item { color: var(--m-text-2) !important; font-size: 12.5px !important; font-weight: 500 !important; border-radius: 6px !important; padding: 5px 10px !important; }
+        .dbb-menu-item:hover { background: var(--m-item) !important; color: var(--m-text) !important; }
+        .dbb-window-title {
+            position: absolute; left: 50%; transform: translateX(-50%); max-width: 50%;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+            color: var(--m-text-3) !important; font-size: 12px !important; font-weight: 500 !important; letter-spacing: 0 !important;
+        }
+        .dbb-dropdown, .dbb-proj-menu {
+            background: var(--m-surface) !important;
+            border: 1px solid var(--m-line-strong) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.5) !important;
+            padding: 6px !important;
+            min-width: 240px !important;
+            -webkit-app-region: no-drag;
+            top: 100% !important;
+        }
+        .dbb-menu-item::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 8px; }
+        .dbb-drop-item { color: var(--m-text-2) !important; font-size: 13px !important; padding: 8px 12px !important; border-radius: 8px !important; display: flex; justify-content: space-between; gap: 24px; }
+        .dbb-drop-item:hover { background: var(--m-accent-soft) !important; color: var(--m-text) !important; }
+        .dbb-drop-item kbd { background: var(--m-item) !important; border: none !important; color: var(--m-text-3) !important; font-family: 'JetBrains Mono', monospace !important; font-size: 10.5px !important; padding: 2px 6px !important; border-radius: 5px !important; }
+        .dbb-drop-divider { background: var(--m-line) !important; margin: 5px 6px !important; }
+        .dbb-win-controls { margin-left: auto; display: flex; height: 100%; }
+        .dbb-win-btn {
+            width: 46px; height: 100%; border: none; background: transparent;
+            color: var(--m-text-3); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: background 100ms ease, color 100ms ease;
+        }
+        .dbb-win-btn svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.2; }
+        .dbb-win-btn:hover { background: var(--m-item); color: var(--m-text); }
+        .dbb-win-btn.close:hover { background: #e5484d; color: #fff; }
+        .dbb-win-btn .win-restore-ico { display: none; }
+        body.win-maximized .dbb-win-btn .win-max-ico { display: none; }
+        body.win-maximized .dbb-win-btn .win-restore-ico { display: block; }
+        .dbb-app-wrap { height: auto !important; flex: 1 1 auto; min-height: 0; }
+        .bottom-panel { flex-shrink: 0; }
+        .bottom-panel:not(.open) { height: 0 !important; border-top: none !important; }
+
+        /* ───── Dock ───── */
+        .dbb-dock {
+            width: 64px !important; min-width: 64px !important;
+            background: var(--m-chrome) !important;
+            border-right: 1px solid var(--m-line) !important;
+            padding: 10px 0 12px !important; gap: 10px !important; align-items: center;
+        }
+        .dbb-dock-btn {
+            width: 42px !important; height: 42px !important;
+            border-radius: 12px !important;
+            background: var(--m-item) !important;
+            color: var(--m-text-2) !important;
+            border: none !important; box-shadow: none !important;
+            display: flex; align-items: center; justify-content: center; position: relative;
+            transition: background 150ms ease, color 150ms ease, transform 150ms ease !important;
+        }
+        .dbb-dock-btn .ico { width: 22px; height: 22px; }
+        .dbb-dock-btn:hover { background: var(--m-item-hover) !important; color: var(--m-text) !important; transform: translateY(-1px); }
+        .dbb-dock-btn.active { background: var(--m-grad) !important; color: #1a1206 !important; box-shadow: 0 6px 18px var(--m-accent-glow) !important; }
+        .dbb-dock-btn.dock-add { background: transparent !important; border: 1.5px dashed var(--m-line-strong) !important; color: var(--m-text-3) !important; }
+        .dbb-dock-btn.dock-add:hover { border-color: var(--m-accent) !important; color: var(--m-accent) !important; }
+        .dbb-dock-btn.active::before, .dbb-dock-proj-btn.active::before { display: none !important; }
+        .dbb-dock-divider { width: 28px !important; height: 1px !important; background: var(--m-line-strong) !important; margin: 2px auto !important; }
+        .dbb-dock-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .dbb-dock-projects { gap: 10px !important; align-items: center; }
+        .dbb-dock-proj-btn {
+            width: 42px !important; height: 42px !important; border-radius: 12px !important;
+            background: transparent !important; border: none !important; box-shadow: none !important;
+            position: relative; overflow: visible !important; transform: none !important;
+        }
+        .dbb-dock-proj-btn .dock-proj-avatar {
+            width: 42px !important; height: 42px !important; border-radius: 12px !important;
+            font-size: 12.5px !important; font-weight: 700 !important; color: #fff !important;
+            box-shadow: none !important; border: none !important; opacity: 0.85; transition: opacity 150ms ease;
+        }
+        .dbb-dock-proj-btn:hover .dock-proj-avatar { opacity: 1; }
+        .dbb-dock-proj-btn.active .dock-proj-avatar { opacity: 1; box-shadow: 0 0 0 2px var(--m-chrome), 0 0 0 4px var(--m-accent) !important; }
+
+        /* ───── Widoki ───── */
+        .dbb-content-views { background: var(--m-bg) !important; }
+        #viewEditor { flex-direction: row !important; }
+        #viewEditor.dbb-view:not(.active) { display: none !important; }
+        .dbb-editor-main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--m-bg); }
+
+        /* ───── Sidebar ───── */
+        .sidebar {
+            width: 250px; min-width: 250px;
+            background: var(--m-panel) !important;
+            border-right: 1px solid var(--m-line) !important;
+            display: flex; flex-direction: column;
+        }
+        .dbb-proj-header {
+            height: 52px; flex-shrink: 0;
+            display: flex; align-items: center; gap: 8px;
+            padding: 0 12px 0 16px; cursor: pointer; position: relative;
+            border-bottom: 1px solid var(--m-line);
+        }
+        .dbb-proj-header::before {
+            content: ''; width: 8px; height: 8px; border-radius: 50%;
+            background: var(--m-grad); box-shadow: 0 0 10px var(--m-accent-glow); flex-shrink: 0;
+        }
+        .dbb-proj-header:hover { background: rgba(255,255,255,0.02); }
+        .dbb-proj-name { flex: 1; font-size: 14.5px; font-weight: 700; color: var(--m-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px; }
+        .dbb-proj-chevron { color: var(--m-text-3); width: 18px; height: 18px; }
+        .dbb-proj-menu { display: none; position: absolute; left: 10px; right: 10px; top: 54px !important; z-index: 300; min-width: 0 !important; }
+        .dbb-proj-menu.open { display: block; }
+
+        .dbb-side-search, .dbb-top-search { position: relative; display: flex; align-items: center; }
+        .dbb-side-search { margin: 12px 12px 8px; }
+        .dbb-side-search input, .dbb-top-search input {
+            width: 100%; height: 32px;
+            background: var(--m-field);
+            border: 1px solid var(--m-line); border-radius: 9px;
+            color: var(--m-text); font-size: 12.5px;
+            padding: 0 10px 0 32px; outline: none;
+            transition: border-color 120ms ease, box-shadow 120ms ease;
+        }
+        .dbb-side-search input:focus, .dbb-top-search input:focus { border-color: rgba(255,159,28,0.6); box-shadow: 0 0 0 3px rgba(255,159,28,0.12); }
+        .dbb-side-search input::placeholder, .dbb-top-search input::placeholder { color: var(--m-text-3); }
+        .dbb-side-search .ico, .dbb-top-search .ico { position: absolute; left: 9px; width: 16px; height: 16px; color: var(--m-text-3); pointer-events: none; }
+        .dbb-top-search { width: 190px; margin: 0 4px; }
+
+        .ws-tree { padding: 4px 10px 14px !important; gap: 2px !important; }
+        .folder-container { gap: 2px !important; margin-top: 12px; }
+        .folder-header {
+            padding: 4px 6px !important;
+            font-size: 10.5px !important; font-weight: 700 !important;
+            letter-spacing: 0.09em; text-transform: uppercase;
+            color: var(--m-text-3) !important; background: none !important; gap: 4px !important;
+        }
+        .folder-header:hover { color: var(--m-text-2) !important; }
+        .folder-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .folder-arrow { width: 14px !important; height: 14px !important; font-size: 0 !important; transform: rotate(-90deg); transition: transform 150ms ease; }
+        .folder-arrow.open { transform: rotate(0deg) !important; }
+        .folder-add { display: flex; color: var(--m-text-3); cursor: pointer; border-radius: 5px; padding: 1px; }
+        .folder-add .ico { width: 16px; height: 16px; }
+        .folder-add:hover { color: var(--m-accent); background: var(--m-accent-soft); }
+        .folder-del { opacity: 0; }
+        .folder-header:hover .folder-del { opacity: 1; }
+        .folder-workspaces { padding-left: 0 !important; gap: 2px !important; }
+
+        .ws-item {
+            height: 38px; padding: 0 10px !important; margin: 0;
+            gap: 10px !important; border-radius: 9px !important;
+            background: transparent !important; color: var(--m-text-2) !important;
+            font-size: 13px !important; font-weight: 500 !important;
+            border: 1px solid transparent;
+        }
+        .ws-item:hover { background: var(--m-item) !important; color: var(--m-text) !important; }
+        .ws-item.active { background: var(--m-accent-soft) !important; color: var(--m-text) !important; font-weight: 600 !important; border-color: rgba(255,159,28,0.22); }
+        .ws-item.active::before {
+            display: block !important; content: ''; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px;
+            background: var(--m-grad) !important; border-radius: 0 3px 3px 0;
+        }
+        .ws-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ws-actions { background: var(--m-item) !important; box-shadow: -12px 0 10px var(--m-item) !important; border-radius: 6px; }
+        .ws-item.active .ws-actions { background: #2f2820 !important; box-shadow: -12px 0 10px #2f2820 !important; }
+
+        .ws-avatar {
+            width: 22px; height: 22px; border-radius: 7px;
+            background: linear-gradient(135deg, #3a3944, #2c2b34);
+            position: relative; flex-shrink: 0; display: inline-block;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+        }
+        .ws-avatar.big { width: 28px; height: 28px; border-radius: 9px; }
+        .ws-status {
+            position: absolute; right: -4px; bottom: -4px;
+            width: 9px; height: 9px; border-radius: 50%;
+            border: 2px solid var(--m-panel); cursor: pointer; box-sizing: content-box;
+        }
+        .ws-item:hover .ws-status { border-color: var(--m-item); }
+        .ws-item.active .ws-status { border-color: #2f2820; }
+        .ws-status.on { background: var(--m-leaf); }
+        .ws-status.off { background: #5c5b66; }
+
+        .ws-root-dropzone { display: none; }
+        body.ws-dragging .ws-root-dropzone { display: block; }
+
+        .dbb-side-footer {
+            height: 56px; flex-shrink: 0;
+            border-top: 1px solid var(--m-line);
+            display: flex; align-items: center; gap: 10px; padding: 0 10px 0 14px;
+        }
+        .dbb-side-footer .ws-avatar { width: 30px; height: 30px; border-radius: 9px; }
+        .dbb-side-footer-title { flex: 1; font-size: 13px; font-weight: 600; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-resizer { background: transparent !important; width: 3px !important; margin-left: -3px; }
+        .sidebar-resizer:hover, .sidebar-resizer.active { background: var(--m-accent) !important; }
+
+        .dbb-icon-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+            min-width: 34px; height: 34px; padding: 0 8px;
+            background: none; border: none; border-radius: 9px;
+            color: var(--m-text-2); cursor: pointer; position: relative;
+            transition: color 120ms ease, background 120ms ease;
+            font-size: 12.5px; font-weight: 600;
+        }
+        .dbb-icon-btn:hover { color: var(--m-text); background: var(--m-item); }
+        .dbb-icon-btn.big .ico { width: 19px; height: 19px; }
+        .dbb-run-count { font-size: 11px; font-weight: 700; background: var(--m-item-hover); color: var(--m-text-2); border-radius: 6px; padding: 1px 6px; }
+        #btnToggleRunningBots .pulse-dot { position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; background: var(--m-leaf); box-shadow: 0 0 8px var(--m-leaf); }
+
+        /* Główny przycisk uruchamiania */
+        #btnRunBot {
+            background: var(--m-grad); color: #1d1206; padding: 0 14px 0 10px; height: 34px;
+            box-shadow: 0 4px 14px var(--m-accent-glow);
+        }
+        #btnRunBot:hover { filter: brightness(1.08); background: var(--m-grad); color: #1d1206; }
+        #btnRunBot .ico { width: 18px; height: 18px; }
+        #btnRunBot.running { background: rgba(255,93,115,0.15); color: #ff8595; box-shadow: inset 0 0 0 1px rgba(255,93,115,0.45); }
+        .dbb-tool-group { display: flex; align-items: center; gap: 2px; padding: 3px; background: var(--m-panel); border: 1px solid var(--m-line); border-radius: 12px; }
+
+        /* ───── Pasek workspace'a ───── */
+        .dbb-ws-topbar {
+            height: 52px; flex-shrink: 0;
+            display: flex; align-items: center; gap: 10px;
+            padding: 0 12px 0 16px;
+            background: var(--m-bg);
+            border-bottom: 1px solid var(--m-line);
+            z-index: 20;
+        }
+        .dbb-ws-title { font-size: 15px; font-weight: 700; color: var(--m-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; letter-spacing: -0.2px; }
+        .dbb-ws-topbar-spacer { flex: 1; }
+
+        /* ───── Canvas ───── */
+        .main-layout { flex: 1; display: flex; overflow: hidden; position: relative; }
+        .canvas-area { background-color: var(--m-canvas) !important; }
+        .canvas-grid { opacity: 1; }
+        .empty-state-text { color: var(--m-text-2) !important; }
+        .zoom-controls, .minimap, .console-toggle {
+            background: rgba(28,27,34,0.92) !important;
+            border: 1px solid var(--m-line-strong) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.45) !important;
+            backdrop-filter: blur(8px) !important;
+        }
+        .zoom-btn { border-radius: 8px !important; color: var(--m-text-2) !important; }
+        .zoom-btn:hover { background: var(--m-item-hover) !important; color: var(--m-text) !important; }
+
+        .wire-path { stroke-width: 2.4 !important; opacity: 0.9 !important; stroke-linecap: round; }
+        .wire-path:hover { stroke-width: 4 !important; opacity: 1 !important; filter: drop-shadow(0 0 4px currentColor) !important; }
+
+        /* ───── Obszary (notatki) ───── */
+        .dbb-note {
+            --note-color: #8b5cf6;
+            border: 1.5px solid color-mix(in srgb, var(--note-color) 55%, transparent) !important;
+            border-radius: 18px !important;
+            background: color-mix(in srgb, var(--note-color) 8%, transparent) !important;
+        }
+        .dbb-note-header {
+            align-self: flex-start;
+            margin: -1px 0 0 18px;
+            background: color-mix(in srgb, var(--note-color) 85%, #000 15%);
+            color: #fff !important; opacity: 1 !important;
+            font-size: 13px !important; font-weight: 700 !important;
+            padding: 5px 14px !important; border-radius: 0 0 10px 10px;
+        }
+        .dbb-card .dbb-center-scroll { overflow: visible !important; }
+        .dbb-card-body-wrap { min-height: auto; }
+        .dbb-card textarea.dbb-textarea { max-height: none !important; overflow: hidden !important; }
+        .dbb-options-box.grid { display: grid !important; column-gap: 10px !important; row-gap: 6px !important; align-items: start; }
+        .dbb-options-box.grid .dbb-opt-item > label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dbb-options-box.grid .dbb-opt-item.is-default { opacity: 0.55; transition: opacity 120ms ease; }
+        .dbb-options-box.grid .dbb-opt-item.is-default:hover, .dbb-options-box.grid .dbb-opt-item.is-default:focus-within { opacity: 1; }
+
+        .port-item.dangling { color: var(--m-danger) !important; }
+        .port-item.dangling .port-dot { border-style: dashed !important; border-color: var(--m-danger) !important; background: rgba(255,93,115,0.2) !important; }
+
+        /* Warstwa kabli nie może blokować kliknięć w sekcje — klikalne są tylko same kable */
+        .wires-svg { pointer-events: none !important; }
+        .wires-svg path { pointer-events: stroke; }
+        .dbb-note-header { cursor: move; user-select: none; position: relative; z-index: 3; }
+        .dbb-note.selected { box-shadow: 0 0 0 2px color-mix(in srgb, var(--note-color) 80%, #fff 20%); }
+        .dbb-note-resize { position: absolute; right: 4px; bottom: 4px; width: 16px; height: 16px; cursor: nwse-resize; opacity: 0; transition: opacity 120ms ease;
+            background: linear-gradient(135deg, transparent 55%, color-mix(in srgb, var(--note-color) 80%, #fff 20%) 55%, transparent 65%, transparent 75%, color-mix(in srgb, var(--note-color) 80%, #fff 20%) 75%, transparent 85%); }
+        .dbb-note:hover .dbb-note-resize, .dbb-note.selected .dbb-note-resize { opacity: 1; }
+        .note-swatches { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 6px; }
+        .note-swatch { width: 22px; height: 22px; border-radius: 7px; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); transition: transform 100ms ease; }
+        .note-swatch:hover { transform: scale(1.12); }
+        .note-swatch.active { box-shadow: 0 0 0 2px var(--m-panel), 0 0 0 4px var(--m-text); }
+        .note-swatches .info-color-pick { width: 26px; height: 24px; }
+        .info-input.text { font-family: 'Inter', sans-serif; }
+        .info-textarea { height: auto; padding: 6px 8px; resize: vertical; line-height: 1.4; }
+        .context-item-note { font-weight: 600; color: var(--m-accent) !important; border-bottom: 1px solid var(--m-line); margin-bottom: 4px; }
+        .dbb-note-desc { padding: 8px 18px; font-size: 12px; color: var(--m-text-2); white-space: pre-wrap; }
+
+        /* ───── Bloki ───── */
+        .dbb-card {
+            --block-color: var(--m-accent);
+            background: var(--m-block) !important;
+            border: 1px solid var(--m-line-strong) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.42) !important;
+            min-width: 170px !important;
+            cursor: default !important;
+            overflow: visible !important;
+        }
+        .dbb-card::before {
+            display: block !important; content: ''; position: absolute; left: 10px; right: 10px; top: 0; height: 2px;
+            border-radius: 0 0 2px 2px; background: var(--cat-color, var(--m-text-3)) !important; opacity: 0.9;
+        }
+        .dbb-card[data-cat="events"] { --cat-color: #4cc38a; }
+        .dbb-card[data-cat="bot"] { --cat-color: #ff9f1c; }
+        .dbb-card[data-cat="messaging"] { --cat-color: #4ea8ff; }
+        .dbb-card[data-cat="logic"] { --cat-color: #ffd166; }
+        .dbb-card[data-cat="data"] { --cat-color: #c77dff; }
+        .dbb-card[data-cat="interaction"] { --cat-color: #ff7a59; }
+        .dbb-card[data-cat="server"] { --cat-color: #9aa0b4; }
+        .dbb-card[data-cat="member"] { --cat-color: #2dd4bf; }
+        .dbb-card[data-cat="channel"] { --cat-color: #8b9cff; }
+        .dbb-card[data-cat="default"] { --cat-color: #8e8c9b; }
+        .dbb-card:hover { border-color: rgba(255,255,255,0.18) !important; }
+        .dbb-card.selected { border-color: var(--m-accent) !important; box-shadow: 0 0 0 3px rgba(255,159,28,0.22), 0 14px 32px rgba(0,0,0,0.5) !important; }
+        .dbb-card.colored { --cat-color: var(--block-color); border-color: color-mix(in srgb, var(--block-color) 45%, transparent) !important; }
+        .dbb-card.colored .dbb-header { background: color-mix(in srgb, var(--block-color) 22%, var(--m-block-head)) !important; }
+        .dbb-card.colored .dbb-card-body-wrap { background: color-mix(in srgb, var(--block-color) 6%, var(--m-block)) !important; }
+        .dbb-card.locked { border-style: dashed !important; }
+
+        .dbb-header {
+            background: var(--m-block-head) !important;
+            border-radius: 11px 11px 0 0;
+            padding: 0 10px !important; height: 30px; min-height: 30px;
+            font-size: 11.5px !important; font-weight: 600 !important;
+            color: var(--m-text); letter-spacing: -0.1px !important;
+            cursor: move; gap: 6px;
+            border-bottom: 1px solid var(--m-line);
+        }
+        .dbb-card.locked .dbb-header { cursor: default; }
+        .header-left { gap: 6px !important; flex: 1; min-width: 0; }
+        .header-left::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--cat-color, var(--m-text-3)); flex-shrink: 0; }
+        .dbb-header-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dbb-block-id { font-size: 10px; font-weight: 500; color: var(--m-text-3); flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+        .dbb-close-btn { display: none !important; }
+        .dbb-card:hover .dbb-close-btn { display: flex !important; width: 18px !important; height: 18px !important; font-size: 10px !important; color: var(--m-text-3) !important; border-radius: 6px !important; }
+        .dbb-card:hover .dbb-close-btn:hover { background: rgba(255,93,115,0.18) !important; color: var(--m-danger) !important; }
+        .dbb-card:hover .dbb-block-id { display: none; }
+
+        .dbb-card-body-wrap { background: var(--m-block) !important; padding: 6px 0 8px; border-radius: 0 0 12px 12px; }
+        .dbb-ports-col { gap: 2px !important; padding: 2px 0 !important; min-width: 0 !important; max-width: 140px !important; }
+        .dbb-ports-col.outputs { justify-content: flex-end; }
+        .dbb-center-scroll { padding: 2px 8px !important; gap: 6px !important; min-width: 90px !important; border: none !important; }
+        .dbb-options-box { background: none !important; border: none !important; padding: 0 !important; gap: 7px !important; margin: 0 !important; }
+        .dbb-opt-item { gap: 3px !important; }
+        .dbb-opt-item > label {
+            font-size: 9.5px !important; text-transform: uppercase !important; letter-spacing: 0.06em !important;
+            color: var(--m-text-3) !important; font-weight: 700 !important;
+        }
+        .dbb-card textarea.dbb-textarea, .dbb-card .dbb-input, .dbb-card .dbb-select {
+            background: var(--m-field) !important;
+            color: var(--m-text) !important;
+            border: 1px solid var(--m-line-strong) !important; border-radius: 7px !important;
+            font-size: 11px !important; line-height: 1.35 !important;
+            padding: 5px 8px !important; box-shadow: none !important; min-height: 0 !important;
+        }
+        .dbb-card textarea.dbb-textarea { min-height: 28px !important; resize: none; font-family: 'JetBrains Mono', monospace !important; font-size: 10.5px !important; }
+        .dbb-card .dbb-select {
+            height: 26px; padding: 0 22px 0 8px !important;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23ff9f1c' fill='none' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important; background-position: right 8px center !important;
+        }
+        .dbb-card .dbb-select option, .dbb-card .dbb-select optgroup { background: var(--m-surface); color: var(--m-text); }
+        .dbb-card .dbb-input[type="color"] { height: 26px; padding: 2px !important; }
+        .dbb-card textarea.dbb-textarea::placeholder, .dbb-card .dbb-input::placeholder { color: #5f5d6b; }
+        .dbb-card textarea.dbb-textarea:focus, .dbb-card .dbb-input:focus, .dbb-card .dbb-select:focus { border-color: rgba(255,159,28,0.6) !important; box-shadow: 0 0 0 3px rgba(255,159,28,0.12) !important; }
+
+        /* Przełącznik */
+        input.dbb-toggle {
+            appearance: none; -webkit-appearance: none;
+            width: 32px; height: 18px; border-radius: 9px;
+            background: #3a3944; position: relative; cursor: pointer; margin: 1px 0;
+            transition: background 160ms ease; flex-shrink: 0;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+        }
+        input.dbb-toggle::after {
+            content: ''; position: absolute; top: 3px; left: 3px;
+            width: 12px; height: 12px; border-radius: 50%; background: #9c9aa8;
+            transition: left 160ms ease, background 160ms ease;
+        }
+        input.dbb-toggle:checked { background: var(--m-grad); }
+        input.dbb-toggle:checked::after { left: 17px; background: #fff; }
+
+        /* Porty */
+        .port-item {
+            font-size: 10.5px !important; color: var(--m-text-2) !important; font-weight: 500 !important;
+            padding: 2px 8px !important; gap: 6px !important; border-radius: 6px !important;
+            min-height: 20px; line-height: 1.15;
+        }
+        .port-item:hover { background: rgba(255,255,255,0.05) !important; color: var(--m-text) !important; }
+        .dbb-ports-col.inputs .port-item { padding-left: 0 !important; margin-left: -6px; }
+        .dbb-ports-col.outputs .port-item { padding-right: 0 !important; margin-right: -6px; text-align: right; }
+        .dbb-ports-col.inputs .port-dot, .dbb-ports-col.outputs .port-dot { margin: 0 !important; }
+        .dbb-ports-col .port-item > span:not(.port-dot) { white-space: normal; max-width: 100px; }
+        .port-dot {
+            width: 11px !important; height: 11px !important;
+            background: var(--m-block) !important;
+            border: 2.5px solid var(--pc, var(--port-unspecified)) !important;
+            box-shadow: 0 0 0 2px var(--m-block) !important;
+        }
+        .port-dot:hover { transform: scale(1.3) !important; background: var(--pc, var(--port-unspecified)) !important; }
+        .port-dot::after { display: none !important; }
+        .port-dot.action, .port-dot.action-out {
+            --pc: var(--port-action);
+            background: var(--port-action) !important;
+            border: none !important; box-shadow: 0 0 8px rgba(255,176,32,0.45) !important;
+            border-radius: 3px !important; clip-path: none !important;
+            width: 10px !important; height: 10px !important; transform: rotate(45deg);
+        }
+        .port-dot.action:hover, .port-dot.action-out:hover { transform: rotate(45deg) scale(1.3) !important; }
+        .port-dot.t-text { --pc: var(--port-text); }
+        .port-dot.t-object { --pc: var(--port-object); }
+        .port-dot.t-number { --pc: var(--port-number); }
+        .port-dot.t-boolean { --pc: var(--port-boolean); }
+        .port-dot.t-list { --pc: var(--port-list); }
+        .port-dot.t-date { --pc: var(--port-date); }
+        .port-num { color: var(--m-text-3); font-weight: 600; font-size: 9px; font-family: 'JetBrains Mono', monospace; }
+        .dbb-add-port-btn { font-size: 10px !important; color: var(--m-accent) !important; background: none !important; border: none !important; padding: 2px 4px !important; opacity: 0.8; }
+        .dbb-add-port-btn:hover { opacity: 1; }
+        .port-remove-btn { font-size: 8px; color: var(--m-text-3); }
+        body.is-wiring .dbb-ports-col.inputs .port-item { border: none !important; background: rgba(255,159,28,0.1) !important; }
+        .port-item.wire-target-hover { background: rgba(255,159,28,0.25) !important; box-shadow: none !important; }
+
+        /* ───── Prawy panel ───── */
+        .right-projects-panel {
+            width: 260px !important; min-width: 240px !important;
+            background: var(--m-panel) !important;
+            border-left: 1px solid var(--m-line) !important;
+            overflow-y: auto; padding: 10px;
+            gap: 10px;
+        }
+        .right-panel-resizer { width: 3px !important; margin-right: -3px; }
+        .right-panel-resizer:hover, .right-panel-resizer.active { background: var(--m-accent) !important; }
+        .dbb-info-nav { display: flex; gap: 6px; padding: 0; }
+        .dbb-info-arrow, .dbb-info-main {
+            height: 36px; border: 1px solid var(--m-line); border-radius: 10px; cursor: pointer;
+            background: var(--m-surface); color: var(--m-text-2); font-size: 12.5px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: background 120ms ease, color 120ms ease;
+        }
+        .dbb-info-arrow { width: 36px; }
+        .dbb-info-arrow .ico { width: 16px; height: 16px; }
+        .dbb-info-main { flex: 1; }
+        .dbb-info-main small { font-size: 10.5px; color: var(--m-text-3); font-family: 'JetBrains Mono', monospace; }
+        .dbb-info-arrow:hover, .dbb-info-main:hover { background: var(--m-item-hover); color: var(--m-text); }
+        .dbb-info-body {
+            background: var(--m-surface); border: 1px solid var(--m-line); border-radius: 14px;
+            padding: 14px; font-size: 12.5px; color: var(--m-text-3); line-height: 1.5;
+        }
+        .info-section-title { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--m-text-3); margin-bottom: 10px; }
+        .info-tip { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; }
+        .info-tip:last-child { margin-bottom: 0; }
+        .info-tip b { flex-shrink: 0; width: 22px; height: 22px; border-radius: 7px; background: var(--m-accent-soft); color: var(--m-accent); font-size: 11px; display: flex; align-items: center; justify-content: center; }
+        .info-block-name { color: var(--m-text); font-weight: 700; font-size: 14px; margin: 0 0 4px; }
+        .info-block-desc { font-size: 11.5px; color: var(--m-text-3); margin-bottom: 12px; white-space: pre-wrap; max-height: 110px; overflow: auto; }
+        .info-grid { display: grid; gap: 8px; margin: 8px 0; }
+        .info-grid.three { grid-template-columns: repeat(3, 1fr); }
+        .info-grid.two { grid-template-columns: repeat(2, 1fr); }
+        .info-grid label, .info-label { display: flex; flex-direction: column; gap: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--m-text-3); text-transform: uppercase; }
+        .info-input { width: 100%; height: 30px; background: var(--m-field); border: 1px solid var(--m-line-strong); border-radius: 8px; color: var(--m-text); font-size: 12.5px; padding: 0 8px; outline: none; font-family: 'JetBrains Mono', monospace; }
+        .info-input:focus { border-color: rgba(255,159,28,0.6); }
+        .info-color-row { display: flex; gap: 6px; margin-top: 4px; }
+        .info-color-pick { width: 34px; height: 30px; border: 1px solid var(--m-line-strong); border-radius: 8px; background: var(--m-field); padding: 2px; cursor: pointer; }
+        .info-actions { display: flex; gap: 8px; margin-top: 14px; }
+        .info-btn { flex: 1; height: 34px; border: 1px solid var(--m-line); border-radius: 9px; background: var(--m-item); color: var(--m-text-2); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .info-btn .ico { width: 18px; height: 18px; }
+        .info-btn:hover { background: var(--m-item-hover); color: var(--m-text); }
+        .info-btn.danger { color: var(--m-danger); }
+        .info-btn.danger:hover { background: rgba(255,93,115,0.15); }
+        .info-btn.active { background: var(--m-accent-soft); color: var(--m-accent); border-color: rgba(255,159,28,0.3); }
+        .right-panel-header { background: none !important; border: none !important; padding: 6px 4px 0 !important; }
+        .right-panel-title { color: var(--m-text-3) !important; font-size: 10.5px !important; letter-spacing: 0.09em !important; }
+        .running-count-badge { background: var(--m-item) !important; color: var(--m-text-2) !important; }
+        .running-bots-list { padding: 0 !important; flex: none !important; overflow: visible !important; }
+        .running-bot-card { background: var(--m-surface) !important; border: 1px solid var(--m-line) !important; border-radius: 12px !important; box-shadow: none !important; }
+        .running-bot-card.active-editor { border-color: rgba(255,159,28,0.4) !important; }
+        .running-bot-card:hover { transform: none !important; }
+        .bot-card-status-pill { background: rgba(76,195,138,0.12) !important; color: var(--m-leaf) !important; border-color: rgba(76,195,138,0.3) !important; }
+        .running-bots-list > div:only-child:not(.running-bot-card) { padding: 14px !important; font-size: 12px !important; background: var(--m-surface); border: 1px dashed var(--m-line-strong); border-radius: 12px; }
+
+        /* ───── Ekran startowy ───── */
+        #viewHome { background: var(--m-bg); overflow-y: auto; }
+        .dbb-home-container {
+            display: grid !important; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px !important;
+            padding: 28px 32px !important; max-width: 1280px; margin: 0 auto; background: transparent !important; align-items: start !important;
+        }
+        .home-col-left, .home-col-right { gap: 20px !important; height: auto; }
+        .home-hero-card {
+            position: relative; overflow: hidden;
+            padding: 30px 30px 26px !important; height: auto;
+            border-radius: 20px !important; border: 1px solid var(--m-line-strong) !important;
+            background:
+                radial-gradient(420px 260px at 105% -20%, rgba(255,140,40,0.55), transparent 65%),
+                radial-gradient(320px 220px at -10% 120%, rgba(76,195,138,0.22), transparent 70%),
+                linear-gradient(160deg, #221b17 0%, #19171d 60%) !important;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4) !important;
+            display: flex; flex-direction: column; align-items: flex-start; gap: 22px;
+        }
+        .home-hero-brand { display: flex; align-items: center; gap: 16px; }
+        .home-logo-circle {
+            width: 64px !important; height: 64px !important; border-radius: 50% !important;
+            background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+            box-shadow: 0 10px 30px rgba(255,120,40,0.25) !important; display: flex; align-items: center; justify-content: center;
+        }
+        .home-logo-circle img { width: 44px; height: 44px; object-fit: contain; }
+        .home-hero-texts { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+        .home-app-title { font-size: 12px !important; font-weight: 700 !important; letter-spacing: 0.18em !important; color: var(--m-accent) !important; margin: 0 !important; text-transform: uppercase; }
+        .home-app-subtitle {
+            font-size: 30px !important; font-weight: 800 !important; letter-spacing: -0.8px !important; line-height: 1.1;
+            color: var(--m-text) !important; background: none !important; -webkit-text-fill-color: var(--m-text) !important;
+            padding: 0 !important; margin: 0 !important;
+        }
+        .home-col-left, .home-col-right { width: auto !important; max-width: none !important; min-width: 0 !important; flex: none !important; }
+        .home-app-subtitle { text-transform: none !important; }
+        .home-app-subtitle span { background: linear-gradient(100deg, #ffd23a 0%, #ff9f1c 45%, #ff6b3d 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .home-hero-tagline { text-align: left;
+        font-size: 14px; color: var(--m-text-2); max-width: 440px; line-height: 1.55; }
+        .home-hero-actions { gap: 10px !important; margin: 0 !important; display: flex; }
+        .btn-dbb-primary {
+            background: var(--m-item) !important; color: var(--m-text) !important;
+            border: 1px solid var(--m-line-strong) !important; border-radius: 999px !important;
+            font-size: 13px !important; font-weight: 600 !important;
+            padding: 10px 18px !important; box-shadow: none !important;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-dbb-primary .ico { width: 17px; height: 17px; }
+        .btn-dbb-primary:hover { background: var(--m-item-hover) !important; transform: translateY(-1px) !important; }
+        .btn-dbb-primary.accent { background: var(--m-grad) !important; color: #1d1206 !important; border-color: transparent !important; box-shadow: 0 8px 22px var(--m-accent-glow) !important; }
+        .btn-dbb-primary.accent:hover { filter: brightness(1.06); background: var(--m-grad) !important; }
+        .home-recent-section, .home-col-right {
+            background: var(--m-panel) !important; border: 1px solid var(--m-line) !important;
+            border-radius: 18px !important; overflow: hidden; padding: 0 !important;
+        }
+        .home-section-header {
+            background: none !important; padding: 18px 20px 4px !important;
+            height: auto; display: flex; align-items: center; justify-content: space-between; margin: 0 !important;
+        }
+        .home-section-title { font-size: 15px !important; font-weight: 700 !important; color: var(--m-text) !important; letter-spacing: -0.2px; }
+        .btn-dbb-text {
+            background: none !important; color: var(--m-text-3) !important; border: none !important;
+            border-radius: 8px !important; padding: 6px 10px !important; font-size: 12px !important; font-weight: 600 !important;
+        }
+        .btn-dbb-text:hover { background: var(--m-item) !important; color: var(--m-text) !important; }
+        .recent-projects-grid { padding: 12px 20px 20px !important; gap: 10px !important; display: grid !important; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; }
+        .recent-project-card {
+            background: var(--m-surface) !important; border: 1px solid var(--m-line) !important; border-radius: 14px !important;
+            padding: 12px !important; width: auto; box-shadow: none !important;
+            display: flex !important; flex-direction: row !important; align-items: center !important; gap: 12px !important; text-align: left;
+        }
+        .recent-project-card:hover { background: var(--m-item) !important; border-color: rgba(255,159,28,0.35) !important; transform: translateY(-1px) !important; }
+        .recent-avatar { width: 42px !important; height: 42px !important; min-width: 42px; border-radius: 12px !important; font-size: 13px !important; font-weight: 700 !important; box-shadow: none !important; margin: 0 !important; }
+        .recent-name { font-size: 13.5px !important; font-weight: 600 !important; color: var(--m-text) !important; max-width: none; text-align: left !important; flex: 1; }
+        .recent-workspaces-badge { display: block !important; position: static !important; background: none !important; padding: 0 !important; font-size: 11.5px !important; color: var(--m-text-3) !important; border: none !important; }
+        .recent-meta { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 2px; }
+        .recent-meta .recent-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .pitaya-news { padding: 8px 20px 22px; display: flex; flex-direction: column; gap: 4px; }
+        .pitaya-news-item { display: flex; gap: 14px; padding: 12px; border-radius: 12px; }
+        .pitaya-news-item:hover { background: var(--m-surface); }
+        .pitaya-news-icon { width: 34px; height: 34px; min-width: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--m-accent-soft); color: var(--m-accent); }
+        .pitaya-news-icon .ico { width: 18px; height: 18px; }
+        .pitaya-news-icon.leaf { background: rgba(76,195,138,0.12); color: var(--m-leaf); }
+        .pitaya-news-icon.blue { background: rgba(78,168,255,0.12); color: #4ea8ff; }
+        .pitaya-news-icon.violet { background: rgba(199,125,255,0.12); color: #c77dff; }
+        .pitaya-news-title { font-size: 13.5px; font-weight: 700; color: var(--m-text); margin-bottom: 2px; }
+        .pitaya-news-text { font-size: 12.5px; color: var(--m-text-3); line-height: 1.5; }
+        .pitaya-version-chip { font-size: 11px; font-weight: 700; color: var(--m-accent); background: var(--m-accent-soft); padding: 3px 9px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; }
+
+        /* ───── Modale / menu kontekstowe / toasty ───── */
+        .dbb-modal-overlay { background: rgba(8,7,10,0.7) !important; backdrop-filter: blur(4px); }
+        .dbb-modal-card { background: var(--m-panel) !important; border: 1px solid var(--m-line-strong) !important; border-radius: 18px !important; box-shadow: 0 30px 70px rgba(0,0,0,0.55) !important; overflow: hidden; }
+        .dbb-modal-header { border-bottom: 1px solid var(--m-line) !important; }
+        .dbb-modal-title { font-size: 16px !important; font-weight: 700 !important; color: var(--m-text) !important; }
+        .dbb-modal-label { font-size: 10.5px !important; font-weight: 700 !important; letter-spacing: 0.08em; text-transform: uppercase; color: var(--m-text-3) !important; }
+        .dbb-modal-input, .dbb-modal-card select { background: var(--m-field) !important; border: 1px solid var(--m-line-strong) !important; border-radius: 10px !important; color: var(--m-text) !important; }
+        .dbb-modal-input:focus { border-color: rgba(255,159,28,0.6) !important; box-shadow: 0 0 0 3px rgba(255,159,28,0.12) !important; }
+        .dbb-modal-footer { background: var(--m-chrome) !important; border-top: 1px solid var(--m-line) !important; }
+        .btn-modal-confirm { background: var(--m-grad) !important; color: #1d1206 !important; border-radius: 999px !important; font-weight: 700 !important; }
+        .btn-modal-confirm:hover { filter: brightness(1.06); }
+        .btn-modal-cancel { background: var(--m-item) !important; border: 1px solid var(--m-line) !important; color: var(--m-text-2) !important; border-radius: 999px !important; }
+        .btn-modal-cancel:hover { background: var(--m-item-hover) !important; color: var(--m-text) !important; }
+        .context-menu { background: var(--m-surface) !important; border: 1px solid var(--m-line-strong) !important; border-radius: 14px !important; box-shadow: 0 20px 50px rgba(0,0,0,0.55) !important; }
+        .context-header { color: var(--m-accent) !important; text-transform: uppercase; font-size: 10.5px !important; letter-spacing: 0.1em; }
+        .context-search input { background: var(--m-field) !important; border: 1px solid var(--m-line-strong) !important; border-radius: 9px !important; color: var(--m-text) !important; }
+        .toast { background: var(--m-surface) !important; border: 1px solid var(--m-line-strong) !important; border-radius: 12px !important; box-shadow: 0 14px 34px rgba(0,0,0,0.5) !important; color: var(--m-text) !important; }
+        .toast-container { top: 104px !important; right: 280px !important; }
+        .bottom-panel { background: var(--m-chrome) !important; border-top: 1px solid var(--m-line) !important; }
+
     </style>
 </head>
 <body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+        <symbol id="i-stop" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></symbol>
+        <symbol id="i-shapes" viewBox="0 0 24 24"><path d="M12 1.5 6.2 11h11.6z"/><circle cx="17.3" cy="17.3" r="4.7"/><path d="M2.5 12.8h8.6v8.6H2.5z"/></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+        <symbol id="i-help" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></symbol>
+        <symbol id="i-home" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></symbol>
+        <symbol id="i-gear" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></symbol>
+        <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 18h13v-2H3v2zm0-5h10v-2H3v2zm0-7v2h13V6H3zm18 9.59L17.42 12 21 8.41 19.59 7l-5 5 5 5L21 15.59z"/></symbol>
+        <symbol id="i-save" viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></symbol>
+        <symbol id="i-code" viewBox="0 0 24 24"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></symbol>
+        <symbol id="i-left" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></symbol>
+        <symbol id="i-right" viewBox="0 0 24 24"><path d="m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></symbol>
+        <symbol id="i-unlock" viewBox="0 0 24 24"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></symbol>
+        <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></symbol>
+        <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10zm-2-1h-6v-2h6v2zM7.5 17l-1.41-1.41L8.67 13l-2.59-2.59L7.5 9l4 4-4 4z"/></symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></symbol>
+        <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 2 2.1 6.2L20 10l-5.9 1.8L12 18l-2.1-6.2L4 10l5.9-1.8z"/><path d="m19 15 .9 2.6L22 18.5l-2.1.9L19 22l-.9-2.6-2.1-.9 2.1-.9z"/></symbol>
+        <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 16.5-7.37-5.73L3 12.07l9 7 9-7-1.64-1.28zM12 14l7.36-5.73L21 7l-9-7-9 7 1.63 1.27z"/></symbol>
+        <symbol id="i-window" viewBox="0 0 24 24"><path d="M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 14H5V8h14v10z"/></symbol>
+        <symbol id="i-open" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/></symbol>
+        <symbol id="i-folder" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></symbol>
+    </svg>
     <!-- TOAST CONTAINER -->
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- DBB TOP MENUBAR 1:1 -->
     <div class="dbb-top-nav">
-        <div class="dbb-app-icon" onclick="switchView('home')" title="Strona startowa">🔧</div>
+        <div class="dbb-app-icon" onclick="switchView('home')" title="Strona startowa"><img src="build/icons/logo.svg" alt="Pitaya" style="width:100%; height:100%; object-fit:contain;"></div>
         <div class="dbb-nav-menu">
             <div class="dbb-menu-item">
-                Project
+                Projekt
                 <div class="dbb-dropdown">
                     <div class="dbb-drop-item" onclick="openModal('modalNewProject')"><span>Nowy Projekt</span> <kbd>Ctrl+N</kbd></div>
                     <div class="dbb-drop-item" onclick="openProjectDialog()"><span>Otwórz Projekt</span> <kbd>Ctrl+O</kbd></div>
@@ -2543,14 +3281,14 @@
                 </div>
             </div>
             <div class="dbb-menu-item">
-                Selection
+                Widok
                 <div class="dbb-dropdown">
                     <div class="dbb-drop-item" onclick="resetZoom()">Resetuj widok</div>
                     <div class="dbb-drop-item" onclick="fitView()">Dopasuj do bloków</div>
                 </div>
             </div>
             <div class="dbb-menu-item">
-                View
+                Okna
                 <div class="dbb-dropdown">
                     <div class="dbb-drop-item" onclick="switchView('home')">Home (Start)</div>
                     <div class="dbb-drop-item" onclick="switchView('editor')">Workspace Editor</div>
@@ -2561,32 +3299,51 @@
             <div class="dbb-menu-item">
                 Bot
                 <div class="dbb-dropdown">
-                    <div class="dbb-drop-item" onclick="toggleBotRun()">Start / Stop Bota</div>
-                    <div class="dbb-drop-item" onclick="generateBotJS()">Generuj kod bota</div>
+                    <div class="dbb-drop-item" onclick="toggleBotRun()"><span>Uruchom / zatrzymaj</span> <kbd>F5</kbd></div>
+                    <div class="dbb-drop-item" onclick="openTokenModal()"><span>Token bota…</span></div>
+                    <div class="dbb-drop-item" onclick="generateBotInvite()"><span>Kopiuj link zaproszenia</span></div>
+                    <div class="dbb-drop-divider"></div>
+                    <div class="dbb-drop-item" onclick="generateBotJS()"><span>Zapisz i zaktualizuj bot.js</span></div>
+                    <div class="dbb-drop-item" onclick="refreshBlocks()"><span>Przeładuj bloki</span> <kbd>Alt+B</kbd></div>
+                    <div class="dbb-drop-divider"></div>
+                    <div class="dbb-drop-item" onclick="openBotFolder()"><span>Pokaż folder bota</span></div>
                 </div>
             </div>
             <div class="dbb-menu-item">
-                Help
+                Pomoc
                 <div class="dbb-dropdown">
-                    <div class="dbb-drop-item" onclick="showToast('Discord Bot Builder Alternative UI v1.0', 'info')">O programie</div>
+                    <div class="dbb-drop-item" onclick="openModal('modalHelp')">Skróty i pomoc</div>
+                    <div class="dbb-drop-item" onclick="openModal('modalSettings')">O programie</div>
                 </div>
             </div>
         </div>
-        <div class="dbb-window-title">Discord Bot Builder</div>
+        <div class="dbb-window-title" id="windowTitle">Pitaya Bot Builder</div>
+        <div class="dbb-win-controls">
+            <button class="dbb-win-btn" onclick="ipcRenderer.send('win-minimize')" title="Minimize">
+                <svg viewBox="0 0 12 12"><path d="M1 6.5h10" /></svg>
+            </button>
+            <button class="dbb-win-btn" id="winMaxBtn" onclick="ipcRenderer.send('win-maximize-toggle')" title="Maximize">
+                <svg viewBox="0 0 12 12" class="win-max-ico"><rect x="1.5" y="1.5" width="9" height="9" /></svg>
+                <svg viewBox="0 0 12 12" class="win-restore-ico"><rect x="1.5" y="3.5" width="7" height="7" /><path d="M3.5 3.5V1.5h7v7h-2" /></svg>
+            </button>
+            <button class="dbb-win-btn close" onclick="ipcRenderer.send('win-close')" title="Close">
+                <svg viewBox="0 0 12 12"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9" /></svg>
+            </button>
+        </div>
     </div>
 
     <!-- DBB APP WRAP -->
     <div class="dbb-app-wrap">
         <!-- LEFT DOCK -->
         <div class="dbb-dock">
-            <button class="dbb-dock-btn active" id="dockBtnHome" onclick="switchView('home')" title="Home (Start)"><span style="font-size:20px;">🏠</span></button>
+            <button class="dbb-dock-btn dock-home active" id="dockBtnHome" onclick="switchView('home')" title="Strona główna"><svg class="ico "><use href="#i-home"/></svg></button>
             <div class="dbb-dock-divider"></div>
-            <!-- Załadowane boty (projekty) po boku jak na Discordzie -->
+            <!-- Załadowane boty (projekty) -->
             <div class="dbb-dock-projects" id="dockLoadedProjects"></div>
-            <button class="dbb-dock-btn" onclick="openProjectDialog()" title="Dodaj / Załaduj bota do paska (Open Project)" style="font-size:16px; opacity:0.75; font-weight:bold;">＋</button>
+            <button class="dbb-dock-btn dock-add" onclick="openProjectDialog()" title="Otwórz projekt"><svg class="ico "><use href="#i-plus"/></svg></button>
             <div class="dbb-dock-bottom">
-                <button class="dbb-dock-btn" onclick="openWorkspaceCodeModal()" title="Kopiuj / Wklej Kod Workspace (Schowek/Plik)"><span style="font-size:18px;">📋</span></button>
-                <button class="dbb-dock-btn" onclick="openModal('modalSettings')" title="Ustawienia"><span style="font-size:18px;">⚙️</span></button>
+                <div class="dbb-dock-divider"></div>
+                <button class="dbb-dock-btn" id="dockBtnSettings" onclick="openModal('modalSettings')" title="Ustawienia"><svg class="ico "><use href="#i-gear"/></svg></button>
             </div>
         </div>
 
@@ -2599,20 +3356,25 @@
                     <div class="home-col-left">
                         <!-- HERO CARD -->
                         <div class="home-hero-card">
-                            <div class="home-logo-circle">🔧</div>
-                            <div class="home-app-title">Discord Bot</div>
-                            <div class="home-app-subtitle">Builder</div>
+                            <div class="home-hero-brand">
+                                <div class="home-logo-circle"><img src="build/icons/logo.svg" alt="Pitaya Bot Builder"></div>
+                                <div class="home-hero-texts">
+                                    <div class="home-app-title">Pitayas</div>
+                                    <div class="home-app-subtitle">Pitaya <span>Bot Builder</span></div>
+                                </div>
+                            </div>
+                            <div class="home-hero-tagline">Buduj boty Discord z klocków — bez pisania kodu. Łącz bloki, ustawiaj opcje i uruchamiaj kilka botów naraz, natywnie na Linuxie.</div>
                             <div class="home-hero-actions">
-                                <button class="btn-dbb-primary" onclick="openModal('modalNewProject')">New Project</button>
-                                <button class="btn-dbb-primary" onclick="openProjectDialog()">Open Project</button>
+                                <button class="btn-dbb-primary accent" onclick="openModal('modalNewProject')"><svg class="ico"><use href="#i-plus"/></svg>Nowy projekt</button>
+                                <button class="btn-dbb-primary" onclick="openProjectDialog()"><svg class="ico"><use href="#i-open"/></svg>Otwórz projekt</button>
                             </div>
                         </div>
 
                         <!-- RECENT PROJECTS SECTION -->
                         <div class="home-recent-section">
                             <div class="home-section-header">
-                                <span class="home-section-title">Recent</span>
-                                <button class="btn-dbb-text" onclick="clearRecentProjects()">Clear All</button>
+                                <span class="home-section-title">Ostatnie projekty</span>
+                                <button class="btn-dbb-text" onclick="clearRecentProjects()">Wyczyść listę</button>
                             </div>
                             <div class="recent-projects-grid" id="recentProjectsGrid">
                                 <!-- Dynamic recent projects cards -->
@@ -2623,22 +3385,25 @@
                     <!-- RIGHT COLUMN: WHAT'S NEW -->
                     <div class="home-col-right">
                         <div class="home-section-header">
-                            <span class="home-section-title">What's New</span>
-                            <button class="btn-dbb-text">Show More</button>
+                            <span class="home-section-title">Nowości w Pitaya</span>
+                            <span class="pitaya-version-chip" id="homeVersionChip">v1.0.0</span>
                         </div>
-                        <div class="whats-new-card">
-                            <div class="whats-new-title">Utility Update</div>
-                            <div class="whats-new-meta">1.0.0-preview.6 • 2025-02-27</div>
-                            <div class="whats-new-banner">
-                                <div class="banner-badge">
-                                    <span>🔧</span>
-                                    <span>UTILITY UPDATE</span>
-                                </div>
-                                <div class="banner-sub-pill">1.0.0-PREVIEW.6</div>
+                        <div class="pitaya-news">
+                            <div class="pitaya-news-item">
+                                <div class="pitaya-news-icon"><svg class="ico"><use href="#i-spark"/></svg></div>
+                                <div><div class="pitaya-news-title">Nowy wygląd</div><div class="pitaya-news-text">Własny motyw Pitaya: soczyste kolory, zaokrąglone bloki i czytelniejsze pola opcji.</div></div>
                             </div>
-                            <div class="whats-new-text">
-                                <strong>Hey Builders!</strong><br>
-                                This update brings new features related to user experience and user interface. Below are some of these features implemented, but there are more features that, as they are small details, are not worth highlighting, but check the changelog to find out more.
+                            <div class="pitaya-news-item">
+                                <div class="pitaya-news-icon leaf"><svg class="ico"><use href="#i-bolt"/></svg></div>
+                                <div><div class="pitaya-news-title">Kilka botów naraz</div><div class="pitaya-news-text">Uruchamiaj wiele projektów jednocześnie i zarządzaj nimi z prawego panelu.</div></div>
+                            </div>
+                            <div class="pitaya-news-item">
+                                <div class="pitaya-news-icon blue"><svg class="ico"><use href="#i-layers"/></svg></div>
+                                <div><div class="pitaya-news-title">Panel właściwości</div><div class="pitaya-news-text">Zaznacz blok, aby zmienić jego pozycję, rozmiar i kolor albo go zablokować.</div></div>
+                            </div>
+                            <div class="pitaya-news-item">
+                                <div class="pitaya-news-icon violet"><svg class="ico"><use href="#i-window"/></svg></div>
+                                <div><div class="pitaya-news-title">Własny pasek okna</div><div class="pitaya-news-text">Okno bez systemowej ramki — przyciski zamknij, maksymalizuj i minimalizuj są wbudowane w aplikację.</div></div>
                             </div>
                         </div>
                     </div>
@@ -2646,64 +3411,61 @@
             </div>
 
             <!-- VIEW 2: WORKSPACE EDITOR -->
-            <div class="dbb-view" id="viewEditor" style="flex-direction: column;">
-                <!-- EDITOR TOP BAR -->
-                <div class="topbar" style="background:#13141b; border-bottom:1px solid rgba(255,255,255,0.08); padding:0 16px; height:46px;">
-                    <div class="topbar-brand" style="gap:12px;">
-                        <span style="font-size:16px;">🤖</span>
-                        <span class="brand-text" id="editorProjectTitle" style="font-size:14px; font-weight:700; color:#fff;">Mango Bot</span>
-                        <span class="brand-version" id="editorWsTitle" style="background:rgba(0,184,148,0.15); color:var(--accent-green); border:1px solid rgba(0,184,148,0.3); padding:2px 8px; border-radius:6px; font-size:11px;">Workspace: Start</span>
+            <div class="dbb-view" id="viewEditor">
+                <!-- SIDEBAR (pełna wysokość, jak w DBB) -->
+                <div class="sidebar" id="mainSidebar">
+                    <div class="dbb-proj-header" onclick="toggleProjectMenu(event)">
+                        <span class="dbb-proj-name" id="editorProjectTitle">Pitaya Bot</span>
+                        <svg class="ico dbb-proj-chevron"><use href="#i-chevron"/></svg>
+                        <div class="dbb-proj-menu" id="projectMenu" onclick="event.stopPropagation()">
+                            <div class="dbb-drop-item" onclick="hideProjectMenu(); openModal('modalNewWorkspace')"><span>Nowy workspace</span></div>
+                            <div class="dbb-drop-item" onclick="hideProjectMenu(); openModal('modalNewFolder')"><span>Nowa kategoria</span></div>
+                            <div class="dbb-drop-item" onclick="hideProjectMenu(); openWorkspaceCodeModal('import')"><span>Importuj workspace</span></div>
+                            <div class="dbb-drop-item" onclick="hideProjectMenu(); cleanDanglingWires()"><span>Usuń zerwane kable</span></div>
+                            <div class="dbb-drop-divider"></div>
+                            <div class="dbb-drop-item" onclick="hideProjectMenu(); openBotFolder()"><span>Pokaż folder bota</span></div>
+                        </div>
                     </div>
-                    <div class="topbar-center">
-                        <span class="token-label">Token:</span>
-                        <input type="password" id="botToken" class="token-input" placeholder="Wklej token bota..." style="width:260px;">
+                    <div class="dbb-side-search">
+                        <input type="text" id="wsSearchInput" placeholder="Szukaj workspace'ów" oninput="renderWorkspacesTree()">
+                        <svg class="ico "><use href="#i-search"/></svg>
                     </div>
-                    <div class="topbar-actions">
-                        <button class="btn btn-save" onclick="openWorkspaceCodeModal()" title="Kopiuj lub wklej kod tego workspace (JSON)" style="background:rgba(255,255,255,0.08);">
-                            <span>📋</span> Kod
-                        </button>
-                        <button class="btn btn-generate" id="btnGenerate" onclick="generateBotJS()" title="Generuj bot.js z workspace'ów">
-                            ⚡ Generuj
-                        </button>
-                        <button class="btn btn-run" id="btnRunBot" onclick="toggleBotRun()">
-                            <span>▶</span> Start
-                        </button>
-                        <button class="btn btn-save" onclick="saveToDisk()">
-                            <span>💾</span> Zapisz
-                        </button>
-                        <button class="btn" id="btnToggleRunningBots" onclick="toggleRightPanel()" title="Pokaż / Ukryj panel uruchomionych botów po prawej" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);">
-                            <span class="pulse-dot" id="topbarRunningDot" style="display:none; width:7px; height:7px;"></span>
-                            <span id="topbarRunningText">⚡ Boty (0)</span>
-                        </button>
+                    <div class="ws-tree" id="wsTree"></div>
+                    <div class="dbb-side-footer">
+                        <span class="ws-avatar" id="footerWsAvatar"></span>
+                        <span class="dbb-side-footer-title" id="footerWsTitle">—</span>
+                        <button class="dbb-icon-btn" onclick="openWorkspaceCodeModal()" title="Kod workspace'a (kopiuj / importuj)"><svg class="ico "><use href="#i-menu"/></svg></button>
+                        <span id="statBlocks" hidden></span><span id="statWires" hidden></span>
                     </div>
                 </div>
-                <!-- MAIN WORKSPACE LAYOUT --><!-- MAIN WORKSPACE LAYOUT -->
-                <div class="main-layout" style="flex:1;">
-                    <!-- SIDEBAR -->
-                    <div class="sidebar" id="mainSidebar">
-                        <div class="sidebar-header">
-                            <span class="sidebar-title">Workspaces</span>
-                            <div class="sidebar-actions">
-                                <button class="btn-icon accent" onclick="openWorkspaceCodeModal('import')" title="Wklej / Importuj kod workspace">📥</button>
-                                <button class="btn-icon accent" onclick="openModal('modalNewFolder')" title="Nowy folder">📁</button>
-                                <button class="btn-icon accent" onclick="openModal('modalNewWorkspace')" title="Nowy workspace">＋</button>
-                            </div>
-                        </div>
-                        <div class="ws-tree" id="wsTree"></div>
-                        <div class="sidebar-stats" id="sidebarStats">
-                            <div class="stat-pill">
-                                <div class="stat-dot" style="background: var(--accent-green)"></div>
-                                <span id="statBlocks">0 bloków</span>
-                            </div>
-                            <div class="stat-pill">
-                                <div class="stat-dot" style="background: var(--accent)"></div>
-                                <span id="statWires">0 połączeń</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- SIDEBAR RESIZER -->
-                    <div class="sidebar-resizer" id="sidebarResizer" title="Przeciągnij, aby zmienić szerokość panelu"></div>
+                <!-- SIDEBAR RESIZER -->
+                <div class="sidebar-resizer" id="sidebarResizer" title="Przeciągnij, aby zmienić szerokość panelu"></div>
 
+                <div class="dbb-editor-main">
+                    <!-- WORKSPACE TOP BAR -->
+                    <div class="dbb-ws-topbar">
+                        <span class="ws-avatar big" id="topWsAvatar"></span>
+                        <span class="dbb-ws-title" id="editorWsTitle">Workspace</span>
+                        <div class="dbb-ws-topbar-spacer"></div>
+                        <input type="password" id="botToken" hidden>
+                        <div class="dbb-tool-group">
+                            <button class="dbb-icon-btn big" onclick="saveToDisk()" title="Zapisz (Ctrl+S)"><svg class="ico "><use href="#i-save"/></svg></button>
+                            <button class="dbb-icon-btn big" onclick="openBlocksMenu()" title="Dodaj blok"><svg class="ico "><use href="#i-shapes"/></svg></button>
+                            <button class="dbb-icon-btn big" onclick="openWorkspaceCodeModal()" title="Kod workspace'a (JSON)"><svg class="ico "><use href="#i-code"/></svg></button>
+                            <button class="dbb-icon-btn big" onclick="toggleConsole()" title="Konsola (F12)"><svg class="ico "><use href="#i-terminal"/></svg></button>
+                        </div>
+                        <button class="dbb-icon-btn big" id="btnToggleRunningBots" onclick="toggleRightPanel()" title="Panel boczny / uruchomione boty">
+                            <svg class="ico "><use href="#i-bolt"/></svg><span class="dbb-run-count" id="topbarRunningText">0</span><span class="pulse-dot" id="topbarRunningDot" style="display:none;"></span>
+                        </button>
+                        <div class="dbb-top-search">
+                            <input type="text" id="canvasSearchInput" placeholder="Szukaj bloku (Enter)" onkeydown="if(event.key==='Enter') searchInWorkspace(this.value, event.shiftKey)">
+                            <svg class="ico "><use href="#i-search"/></svg>
+                        </div>
+                        <button class="dbb-icon-btn big" id="btnRunBot" onclick="toggleBotRun()" title="Uruchom bota (F5)"><svg class="ico"><use href="#i-play"/></svg><span>Uruchom</span></button>
+                        <button class="dbb-icon-btn big" onclick="openModal('modalHelp')" title="Pomoc"><svg class="ico "><use href="#i-help"/></svg></button>
+                    </div>
+
+                    <div class="main-layout">
                     <!-- CANVAS -->
                     <div class="canvas-area" id="canvasArea">
                         <canvas class="canvas-grid" id="canvasGrid"></canvas>
@@ -2739,12 +3501,71 @@
                             <kbd>F12</kbd>
                         </div>
                     </div>
+
+                    <!-- RIGHT PANEL: PROPERTIES / RUNNING BOTS -->
+                    <div class="right-panel-resizer" id="rightPanelResizer"></div>
+                    <div class="right-projects-panel" id="rightProjectsPanel">
+                        <div class="dbb-info-nav">
+                            <button class="dbb-info-arrow" onclick="selectSiblingBlock(-1)" title="Poprzedni blok"><svg class="ico "><use href="#i-left"/></svg></button>
+                            <button class="dbb-info-main" id="infoMainBtn" onclick="infoMainAction()">Pokaż wszystko</button>
+                            <button class="dbb-info-arrow" onclick="selectSiblingBlock(1)" title="Następny blok"><svg class="ico "><use href="#i-right"/></svg></button>
+                        </div>
+                        <div class="dbb-info-body" id="infoPanelBody"></div>
+                        <div class="right-panel-header">
+                            <div class="right-panel-title">
+                                <span>Uruchomione boty</span>
+                                <span class="running-count-badge" id="runningCountBadge">0</span>
+                            </div>
+                        </div>
+                        <div class="running-bots-list" id="runningBotsList"></div>
+                    </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- DBB CUSTOM MODALS -->
+    <!-- Modal: Bot Token -->
+    <div class="dbb-modal-overlay" id="modalBotToken">
+        <div class="dbb-modal-card">
+            <div class="dbb-modal-header">
+                <span class="dbb-modal-title">Token bota</span>
+                <button class="dbb-modal-close" onclick="closeModal('modalBotToken')">✕</button>
+            </div>
+            <div class="dbb-modal-body">
+                <label class="dbb-modal-label">Token</label>
+                <input type="password" id="inputBotToken" class="dbb-modal-input" placeholder="Wklej token z Discord Developer Portal" onkeydown="if(event.key==='Enter') confirmBotToken()">
+                <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">Token zapisuje się lokalnie w pliku data/token.txt projektu i nigdzie nie jest wysyłany.</div>
+            </div>
+            <div class="dbb-modal-footer">
+                <button class="btn-modal-cancel" onclick="closeModal('modalBotToken')">Anuluj</button>
+                <button class="btn-modal-confirm" onclick="confirmBotToken()">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Help -->
+    <div class="dbb-modal-overlay" id="modalHelp">
+        <div class="dbb-modal-card">
+            <div class="dbb-modal-header">
+                <span class="dbb-modal-title">Skróty i pomoc</span>
+                <button class="dbb-modal-close" onclick="closeModal('modalHelp')">✕</button>
+            </div>
+            <div class="dbb-modal-body" style="font-size:13px; line-height:1.7; color:var(--text-secondary);">
+                <div class="info-tip"><b>⇢</b><span>Prawy przycisk na planszy otwiera listę bloków z wyszukiwarką.</span></div>
+                <div class="info-tip"><b>⌁</b><span>Połączenie: przeciągnij z wyjścia do wejścia. Kliknij kabel, aby go usunąć.</span></div>
+                <div class="info-tip"><b>F5</b><span>Uruchom / zatrzymaj bota aktualnego projektu.</span></div>
+                <div class="info-tip"><b>⌘S</b><span>Ctrl+S zapisuje workspace'y projektu.</span></div>
+                <div class="info-tip"><b>F12</b><span>Pokazuje lub chowa konsolę z logami bota.</span></div>
+                <div class="info-tip"><b>Del</b><span>Usuwa zaznaczony blok.</span></div>
+            </div>
+            <div class="dbb-modal-footer">
+                <button class="btn-modal-confirm" onclick="closeModal('modalHelp')">Rozumiem</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: New Folder -->
     <div class="dbb-modal-overlay" id="modalNewFolder">
         <div class="dbb-modal-card">
@@ -2912,7 +3733,7 @@
             <div class="dbb-modal-body">
                 <div style="font-size:13px; color:#c9ccd6; display:flex; flex-direction:column; gap:14px;">
                     <div>
-                        <div style="font-weight:700; font-size:15px; color:#fff;">Mango Bot Builder</div>
+                        <div style="font-weight:700; font-size:15px; color:#fff;">Pitaya Bot Builder</div>
                         <div style="font-size:12px; color:#8c909e; margin-top:3px;">Zaawansowany edytor wizualny botów Discord dla systemów Linux (Fedora / Nobara)</div>
                         <div style="font-size:11px; color:#5865f2; margin-top:2px;">Wersja: <span id="appCurrentVersionText">1.0.0</span></div>
                     </div>
@@ -2953,7 +3774,7 @@
             <div class="console-tabs" id="consoleTabs"></div>
             <div style="display:flex; gap: 6px; align-items:center;">
                 <button class="btn-icon" onclick="clearConsole()" title="Wyczyść konsolę">🗑</button>
-                <button class="btn-icon" onclick="toggleConsole()" title="Zamknij">✕</button>
+                <button class="btn-icon" onclick="toggleConsole(false)" title="Zamknij konsolę (F12)">✕</button>
             </div>
         </div>
         <div class="console-output" id="consoleOutput"></div>
@@ -3089,7 +3910,7 @@
                 const sel = document.getElementById('projectSelect');
                 if (!sel) return;
                 sel.innerHTML = '';
-                (data.projects || ['Mango Bot']).forEach(p => {
+                (data.projects || ['Pitaya Bot']).forEach(p => {
                     const opt = document.createElement('option');
                     opt.value = p;
                     opt.textContent = p;
@@ -3149,8 +3970,8 @@
         async function deleteCurrentProject() {
             const sel = document.getElementById('projectSelect');
             const projName = sel ? sel.value : '';
-            if (!projName || projName === 'Mango Bot') {
-                showToast('Nie można usunąć domyślnego projektu Mango Bot!', 'error');
+            if (!projName || projName === 'Pitaya Bot' || projName === 'Mango Bot') {
+                showToast('Nie można usunąć domyślnego projektu!', 'error');
                 return;
             }
             if (!confirm(`Czy na pewno chcesz bezpowrotnie usunąć projekt "${projName}"?`)) return;
@@ -3168,6 +3989,426 @@
             }
         }
 
+        // ═══════ DBB LOOK: TYPES, AVATARS, RIGHT PANEL ═══════
+        const PORT_TYPE_COLORS = {
+            action: true, text: true, object: true, number: true, boolean: true,
+            list: true, date: true, unspecified: true, undefined: true, null: true
+        };
+        let pendingFolderId = null;
+
+        function getPortType(blockDef, key, isOutput) {
+            const defs = blockDef ? (isOutput ? blockDef.outputs : blockDef.inputs) : null;
+            const pd = Array.isArray(defs) ? defs.find(p => p.id === key) : null;
+            let types = (pd && Array.isArray(pd.types)) ? pd.types.map(t => String(t).toLowerCase()) : [];
+            if (key.toLowerCase() === 'action' || types[0] === 'action') return 'action';
+            const real = types.filter(t => !['unspecified', 'undefined', 'null'].includes(t));
+            const t = real[0] || types[0] || (key.toLowerCase().includes('action') ? 'action' : 'unspecified');
+            if (t === 'string') return 'text';
+            if (t === 'array') return 'list';
+            return PORT_TYPE_COLORS[t] ? t : 'unspecified';
+        }
+
+        function wsAvatarStyle(ws) {
+            const c = ws && ws.info && ws.info.color;
+            return c ? `background:${c};` : '';
+        }
+
+        function updateWorkspaceChrome() {
+            const ws = currentWorkspace;
+            const style = wsAvatarStyle(ws);
+            ['topWsAvatar', 'footerWsAvatar'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.setAttribute('style', style);
+            });
+            const ft = document.getElementById('footerWsTitle');
+            if (ft) ft.textContent = ws ? (ws.info?.title || 'Workspace') : '—';
+            updateWindowTitle();
+        }
+
+        function updateWindowTitle() {
+            const editorActive = document.getElementById('viewEditor')?.classList.contains('active');
+            const parts = [];
+            if (editorActive && currentWorkspace) parts.push(currentWorkspace.info?.title || 'Workspace');
+            if (editorActive && currentProjectName) parts.push(currentProjectName);
+            parts.push('Pitaya Bot Builder');
+            const t = parts.join(' - ');
+            // Tytuł okna w systemie (pasek zadań / Alt+Tab) zaczyna się od "PBB"
+            document.title = parts.length > 1 ? `PBB — ${parts.slice(0, -1).join(' - ')}` : 'PBB';
+            const el = document.getElementById('windowTitle');
+            if (el) el.textContent = t;
+        }
+
+        function centerOnBlock(idx) {
+            if (!currentWorkspace || !currentWorkspace.blocks[idx]) return;
+            const b = currentWorkspace.blocks[idx];
+            const area = document.getElementById('canvasArea').getBoundingClientRect();
+            const card = document.getElementById(`block_${idx}`);
+            const w = card ? card.offsetWidth : (b.width || 260);
+            const h = card ? card.offsetHeight : (b.height || 160);
+            if (zoomScale < 0.6) zoomScale = 0.8;
+            panX = Math.round(area.width / 2 - (b.x + w / 2) * zoomScale);
+            panY = Math.round(area.height / 2 - (b.y + h / 2) * zoomScale);
+            document.getElementById('canvasContent').style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+            document.getElementById('zoomLevel').textContent = Math.round(zoomScale * 100) + '%';
+            drawGrid();
+            drawWires();
+            updateMinimap();
+        }
+
+        function selectBlock(idx, center = true) {
+            selectedNodeIdx = idx;
+            clearNoteSelection();
+            document.querySelectorAll('.dbb-card').forEach(c => c.classList.toggle('selected', c.id === `block_${idx}`));
+            if (center) centerOnBlock(idx);
+            renderInfoPanel();
+        }
+
+        function selectSiblingBlock(dir) {
+            if (!currentWorkspace || !currentWorkspace.blocks || currentWorkspace.blocks.length === 0) return;
+            const n = currentWorkspace.blocks.length;
+            const next = selectedNodeIdx === null ? (dir > 0 ? 0 : n - 1) : (selectedNodeIdx + dir + n) % n;
+            selectBlock(next);
+        }
+
+        function infoMainAction() {
+            if (selectedNoteIdx !== null) {
+                clearNoteSelection();
+                renderInfoPanel();
+            } else if (selectedNodeIdx !== null) {
+                selectedNodeIdx = null;
+                document.querySelectorAll('.dbb-card.selected').forEach(c => c.classList.remove('selected'));
+                renderInfoPanel();
+            } else {
+                fitView();
+            }
+        }
+
+        let lastSearch = { q: '', idx: -1 };
+        function searchInWorkspace(query, backwards = false) {
+            const q = (query || '').trim().toLowerCase();
+            if (!q || !currentWorkspace || !currentWorkspace.blocks) return;
+            const hits = [];
+            currentWorkspace.blocks.forEach((b, i) => {
+                const def = getBlockFullDef(b);
+                const hay = [b.name, def && def.name, JSON.stringify(b.options || {})].join(' ').toLowerCase();
+                if (hay.includes(q)) hits.push(i);
+            });
+            if (hits.length === 0) { showToast(`Nie znaleziono: "${query}"`, 'warning'); return; }
+            if (lastSearch.q !== q) lastSearch = { q, idx: -1 };
+            lastSearch.idx = (lastSearch.idx + (backwards ? -1 : 1) + hits.length) % hits.length;
+            selectBlock(hits[lastSearch.idx]);
+            showToast(`Wynik ${lastSearch.idx + 1}/${hits.length}`, 'info');
+        }
+
+        function renderInfoPanel() {
+            const body = document.getElementById('infoPanelBody');
+            const mainBtn = document.getElementById('infoMainBtn');
+            if (!body) return;
+            const note = (currentWorkspace && selectedNoteIdx !== null && currentWorkspace.notes) ? currentWorkspace.notes[selectedNoteIdx] : null;
+            if (note) { renderNotePanel(body, mainBtn, note); return; }
+            const block = (currentWorkspace && selectedNodeIdx !== null) ? currentWorkspace.blocks[selectedNodeIdx] : null;
+            if (!block) {
+                if (mainBtn) mainBtn.textContent = 'Pokaż wszystko';
+                body.innerHTML = `
+                    <div class="info-section-title">Szybki start</div>
+                    <div class="info-tip"><b>1</b><span>Kliknij prawym przyciskiem na planszy, żeby dodać blok.</span></div>
+                    <div class="info-tip"><b>2</b><span>Przeciągnij z wyjścia do wejścia, by połączyć bloki. Kliknięcie w kabel go usuwa.</span></div>
+                    <div class="info-tip"><b>3</b><span>Zaznacz blok, a tutaj zobaczysz jego właściwości.</span></div>`;
+                return;
+            }
+            const def = getBlockFullDef(block);
+            if (mainBtn) mainBtn.innerHTML = `Odznacz <small>${selectedNodeIdx + 1}/${currentWorkspace.blocks.length}</small>`;
+            const card = document.getElementById(`block_${selectedNodeIdx}`);
+            const h = block.height || (card ? Math.round(card.offsetHeight) : '');
+            const w = block.width || (card ? Math.round(card.offsetWidth) : '');
+            body.innerHTML = `
+                <div class="info-section-title">Właściwości bloku</div>
+                <div class="info-block-name">${escapeHTML(def ? def.name : block.name)}</div>
+                ${def && def.description ? `<div class="info-block-desc">${escapeHTML(def.description)}</div>` : ''}
+                <div class="info-grid three">
+                    <label>X<input class="info-input" data-prop="x" type="number" value="${Math.round(block.x || 0)}"></label>
+                    <label>Y<input class="info-input" data-prop="y" type="number" value="${Math.round(block.y || 0)}"></label>
+                    <label>Z<input class="info-input" data-prop="z" type="number" value="${block.z || 0}"></label>
+                </div>
+                <div class="info-grid two">
+                    <label>Wysokość<input class="info-input" data-prop="height" type="number" value="${h}"></label>
+                    <label>Szerokość<input class="info-input" data-prop="width" type="number" value="${w}"></label>
+                </div>
+                <label class="info-label">Kolor</label>
+                <div class="info-color-row">
+                    <input class="info-input" data-prop="color" type="text" placeholder="#000000" value="${escapeHTML(block.color || '')}">
+                    <input type="color" class="info-color-pick" value="${/^#[0-9a-f]{6}$/i.test(block.color || '') ? block.color : '#464649'}">
+                </div>
+                <div class="info-actions">
+                    <button class="info-btn danger" title="Usuń" data-act="delete"><svg class="ico"><use href="#i-trash"/></svg></button>
+                    <button class="info-btn" title="Duplikuj" data-act="duplicate"><svg class="ico"><use href="#i-copy"/></svg></button>
+                    <button class="info-btn ${block.lock ? 'active' : ''}" title="${block.lock ? 'Odblokuj' : 'Zablokuj'}" data-act="lock"><svg class="ico"><use href="#i-${block.lock ? 'lock' : 'unlock'}"/></svg></button>
+                </div>`;
+
+            const idx = selectedNodeIdx;
+            body.querySelectorAll('.info-input').forEach(inp => {
+                inp.onchange = () => {
+                    const prop = inp.dataset.prop;
+                    if (prop === 'color') block.color = inp.value.trim();
+                    else if (inp.value === '') delete block[prop];
+                    else block[prop] = Number(inp.value);
+                    renderCanvas();
+                };
+            });
+            const pick = body.querySelector('.info-color-pick');
+            pick.oninput = () => { block.color = pick.value; renderCanvas(); };
+            body.querySelector('[data-act="delete"]').onclick = (e) => deleteBlock(e, idx);
+            body.querySelector('[data-act="lock"]').onclick = () => { block.lock = !block.lock; renderCanvas(); };
+            body.querySelector('[data-act="duplicate"]').onclick = () => {
+                const copy = JSON.parse(JSON.stringify(block));
+                copy.x = (copy.x || 0) + 40; copy.y = (copy.y || 0) + 40;
+                Object.keys(copy.inputs || {}).forEach(k => copy.inputs[k] = Array.isArray(copy.inputs[k]) ? [] : copy.inputs[k]);
+                Object.keys(copy.outputs || {}).forEach(k => copy.outputs[k] = Array.isArray(copy.outputs[k]) ? copy.outputs[k].map(v => Array.isArray(v) ? [] : null).filter(v => v !== null) : copy.outputs[k]);
+                currentWorkspace.blocks.push(copy);
+                selectedNodeIdx = currentWorkspace.blocks.length - 1;
+                renderCanvas();
+            };
+        }
+
+        // ═══════ SEKCJE (NOTATKI / OBSZARY) ═══════
+        let selectedNoteIdx = null;
+        const NOTE_SWATCHES = ['#8b5cf6', '#ff9f1c', '#ff6b3d', '#ff5d73', '#4cc38a', '#2dd4bf', '#4ea8ff', '#ffd166', '#9aa0b4'];
+
+        function clearNoteSelection() {
+            selectedNoteIdx = null;
+            document.querySelectorAll('.dbb-note.selected').forEach(n => n.classList.remove('selected'));
+        }
+
+        function selectNote(nIdx) {
+            selectedNoteIdx = nIdx;
+            selectedNodeIdx = null;
+            document.querySelectorAll('.dbb-card.selected').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.dbb-note').forEach(n => n.classList.toggle('selected', n.id === `note_${nIdx}`));
+            if (document.getElementById('rightProjectsPanel')?.classList.contains('collapsed')) toggleRightPanel(true);
+            renderInfoPanel();
+        }
+
+        function startNoteDrag(e, nIdx, mode) {
+            if (e.button !== 0 || !currentWorkspace || !currentWorkspace.notes) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const note = currentWorkspace.notes[nIdx];
+            if (!note) return;
+            if (selectedNoteIdx !== nIdx) selectNote(nIdx);
+            if (note.lock) return;
+            const el = document.getElementById(`note_${nIdx}`);
+            const start = { mx: e.clientX, my: e.clientY, x: note.x || 0, y: note.y || 0, w: note.width || 400, h: note.height || 200 };
+            let moved = false;
+            const onMove = (ev) => {
+                const dx = (ev.clientX - start.mx) / zoomScale;
+                const dy = (ev.clientY - start.my) / zoomScale;
+                if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
+                if (mode === 'move') {
+                    note.x = Math.round(start.x + dx);
+                    note.y = Math.round(start.y + dy);
+                    if (el) { el.style.left = `${note.x}px`; el.style.top = `${note.y}px`; }
+                } else {
+                    note.width = Math.max(160, Math.round(start.w + dx));
+                    note.height = Math.max(80, Math.round(start.h + dy));
+                    if (el) { el.style.width = `${note.width}px`; el.style.height = `${note.height}px`; }
+                }
+            };
+            const onUp = () => {
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+                if (moved) { updateMinimap(); renderInfoPanel(); }
+            };
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+        }
+
+        function renderNotePanel(body, mainBtn, note) {
+            if (mainBtn) mainBtn.innerHTML = 'Odznacz <small>sekcja</small>';
+            const color = /^#[0-9a-f]{6}$/i.test(note.color || '') ? note.color : '#8b5cf6';
+            body.innerHTML = `
+                <div class="info-section-title">Sekcja</div>
+                <label class="info-label">Nazwa<input class="info-input text" data-prop="title" type="text" value="${escapeHTML(note.title || '')}"></label>
+                <label class="info-label" style="margin-top:8px;">Opis<textarea class="info-input text info-textarea" data-prop="description" rows="3">${escapeHTML(note.description || '')}</textarea></label>
+                <label class="info-label" style="margin-top:8px;">Kolor</label>
+                <div class="note-swatches">
+                    ${NOTE_SWATCHES.map(c => `<span class="note-swatch ${c.toLowerCase() === color.toLowerCase() ? 'active' : ''}" data-color="${c}" style="background:${c}"></span>`).join('')}
+                    <input type="color" class="info-color-pick" value="${color}" title="Własny kolor">
+                </div>
+                <div class="info-grid two">
+                    <label>X<input class="info-input" data-prop="x" type="number" value="${Math.round(note.x || 0)}"></label>
+                    <label>Y<input class="info-input" data-prop="y" type="number" value="${Math.round(note.y || 0)}"></label>
+                </div>
+                <div class="info-grid two">
+                    <label>Szerokość<input class="info-input" data-prop="width" type="number" value="${Math.round(note.width || 400)}"></label>
+                    <label>Wysokość<input class="info-input" data-prop="height" type="number" value="${Math.round(note.height || 200)}"></label>
+                </div>
+                <div class="info-actions">
+                    <button class="info-btn danger" title="Usuń sekcję" data-act="delete"><svg class="ico"><use href="#i-trash"/></svg></button>
+                    <button class="info-btn ${note.lock ? 'active' : ''}" title="${note.lock ? 'Odblokuj' : 'Zablokuj'}" data-act="lock"><svg class="ico"><use href="#i-${note.lock ? 'lock' : 'unlock'}"/></svg></button>
+                </div>`;
+
+            const setColor = (c) => { note.color = c; renderCanvas(); };
+            body.querySelectorAll('.note-swatch').forEach(sw => sw.onclick = () => setColor(sw.dataset.color));
+            const pick = body.querySelector('.info-color-pick');
+            pick.oninput = () => {
+                note.color = pick.value;
+                const el = document.getElementById(`note_${selectedNoteIdx}`);
+                if (el) el.style.setProperty('--note-color', pick.value);
+            };
+            pick.onchange = () => setColor(pick.value);
+            body.querySelectorAll('.info-input').forEach(inp => {
+                inp.onchange = () => {
+                    const prop = inp.dataset.prop;
+                    if (prop === 'title' || prop === 'description') note[prop] = inp.value;
+                    else if (inp.value !== '') note[prop] = Number(inp.value);
+                    renderCanvas();
+                };
+            });
+            body.querySelector('[data-act="delete"]').onclick = () => {
+                currentWorkspace.notes.splice(selectedNoteIdx, 1);
+                selectedNoteIdx = null;
+                renderCanvas();
+                showToast('Usunięto sekcję', 'info');
+            };
+            body.querySelector('[data-act="lock"]').onclick = () => { note.lock = !note.lock; renderCanvas(); };
+        }
+
+        function addNoteAtPos(x, y) {
+            if (!currentWorkspace) { showToast('Wybierz workspace!', 'error'); return; }
+            if (!Array.isArray(currentWorkspace.notes)) currentWorkspace.notes = [];
+            currentWorkspace.notes.push({ color: '', x, y, z: 0, width: 600, height: 360, lock: false, title: 'Nowa sekcja', description: '' });
+            renderCanvas();
+            selectNote(currentWorkspace.notes.length - 1);
+        }
+
+        function openBlocksMenu() {
+            const area = document.getElementById('canvasArea').getBoundingClientRect();
+            showContextMenu(area.left + area.width / 2 - 140, area.top + 60);
+        }
+
+        function toggleProjectMenu(e) {
+            if (e) e.stopPropagation();
+            document.getElementById('projectMenu')?.classList.toggle('open');
+        }
+        function hideProjectMenu() {
+            document.getElementById('projectMenu')?.classList.remove('open');
+        }
+        document.addEventListener('click', hideProjectMenu);
+
+        async function openBotFolder() {
+            if (!currentProjectDir) { showToast('Najpierw otwórz projekt', 'info'); return; }
+            await ipcRenderer.invoke('open-path', currentProjectDir);
+        }
+
+        function openTokenModal() {
+            if (!currentProjectDir) { showToast('Najpierw otwórz projekt', 'info'); return; }
+            openModal('modalBotToken');
+            document.getElementById('inputBotToken').value = document.getElementById('botToken').value || '';
+        }
+
+        async function confirmBotToken() {
+            const val = document.getElementById('inputBotToken').value.trim();
+            document.getElementById('botToken').value = val;
+            closeModal('modalBotToken');
+            const res = await ipcRenderer.invoke('set-token', val);
+            showToast(res && res.ok ? 'Token zapisany' : `Błąd zapisu tokenu: ${res?.error || ''}`, res && res.ok ? 'success' : 'error');
+        }
+
+        async function generateBotInvite() {
+            const res = await ipcRenderer.invoke('get-bot-invite');
+            if (res && res.ok) {
+                try { await navigator.clipboard.writeText(res.url); } catch (e) {}
+                showToast('Link zaproszenia skopiowany do schowka', 'success');
+                addConsoleLine(`🔗 ${res.url}`, 'info');
+            } else {
+                showToast(res?.error || 'Nie udało się wygenerować zaproszenia', 'error');
+            }
+        }
+
+        async function refreshBlocks() {
+            installedBlocks = await ipcRenderer.invoke('get-installed-blocks');
+            renderCanvas();
+            showToast(`Odświeżono bloki (${installedBlocks.length})`, 'success');
+        }
+
+        // ═══════ CANVAS / RIGHT PANEL HELPERS ═══════
+        function resizeCanvasGrid() {
+            drawGrid();
+        }
+
+        function toggleRightPanel(force) {
+            const panel = document.getElementById('rightProjectsPanel');
+            const resizer = document.getElementById('rightPanelResizer');
+            if (!panel) return;
+            const open = typeof force === 'boolean' ? force : panel.classList.contains('collapsed');
+            panel.classList.toggle('collapsed', !open);
+            if (resizer) resizer.style.display = open ? '' : 'none';
+            if (open) panel.querySelector('.right-panel-header')?.scrollIntoView({ block: 'nearest' });
+            if (open) loadRunningBotsList();
+            setTimeout(() => { resizeCanvasGrid(); drawWires(); }, 30);
+        }
+
+        function formatUptime(startTime) {
+            const sec = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
+            const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+            return h > 0 ? `${h}h ${m}m` : (m > 0 ? `${m}m ${s}s` : `${s}s`);
+        }
+
+        let runningBotsRenderId = 0;
+        async function loadRunningBotsList() {
+            const renderId = ++runningBotsRenderId;
+            let list = [];
+            try {
+                list = await ipcRenderer.invoke('get-running-bots') || [];
+            } catch (e) {}
+            if (renderId !== runningBotsRenderId) return;
+
+            const countText = document.getElementById('topbarRunningText');
+            const dot = document.getElementById('topbarRunningDot');
+            const badge = document.getElementById('runningCountBadge');
+            if (countText) countText.textContent = list.length;
+            if (dot) dot.style.display = list.length > 0 ? 'inline-block' : 'none';
+            if (badge) badge.textContent = list.length;
+
+            if (currentProjectDir) {
+                updateBotStatus(list.some(b => b.dir === currentProjectDir));
+            }
+
+            const container = document.getElementById('runningBotsList');
+            if (!container) return;
+            if (list.length === 0) {
+                container.innerHTML = '<div style="color:var(--text-muted); font-size:12px; text-align:center; padding:20px 0;">Żaden bot nie jest uruchomiony</div>';
+                return;
+            }
+            container.innerHTML = '';
+            list.forEach(bot => {
+                const card = document.createElement('div');
+                card.className = `running-bot-card ${bot.dir === currentProjectDir ? 'active-editor' : ''}`;
+                card.innerHTML = `
+                    <div class="bot-card-header">
+                        <span class="bot-card-name" title="${escapeHTML(bot.dir)}">${escapeHTML(bot.name)}</span>
+                        <span class="bot-card-status-pill"><span class="pulse-dot" style="width:6px;height:6px;"></span>ONLINE</span>
+                    </div>
+                    <div class="bot-card-meta">
+                        <span>PID: ${bot.pid || '-'}</span>
+                        <span>Czas działania: ${formatUptime(bot.startTime)}</span>
+                    </div>
+                    <div class="bot-card-actions">
+                        <button class="btn" data-act="open" style="background:rgba(255,255,255,0.06); padding:5px 10px; font-size:11px;">Otwórz</button>
+                        <button class="btn" data-act="stop" style="background:rgba(214,48,49,0.15); color:var(--accent-red); padding:5px 10px; font-size:11px;">⏹ Stop</button>
+                    </div>
+                `;
+                card.querySelector('[data-act="open"]').onclick = () => selectAndOpenProject(bot.dir);
+                card.querySelector('[data-act="stop"]').onclick = async () => {
+                    await ipcRenderer.invoke('stop-bot', bot.dir);
+                    showToast(`Zatrzymano bota "${bot.name}"`, 'info');
+                    loadRunningBotsList();
+                    renderDockProjects();
+                };
+                container.appendChild(card);
+            });
+        }
+
         // ═══════ INIT ═══════
         async function init() {
             installedBlocks = await ipcRenderer.invoke('get-installed-blocks');
@@ -3178,10 +4419,33 @@
             window.addEventListener('resize', drawGrid);
             switchView('home');
 
-            ipcRenderer.on('bot-log', (event, msg) => {
-                addConsoleLine(msg);
+            ipcRenderer.on('bot-log', (event, data) => {
+                const msg = (typeof data === 'object' && data !== null) ? (data.message || JSON.stringify(data)) : data;
+                const type = (typeof data === 'object' && data !== null && data.type === 'stderr') ? 'error' : '';
+                addConsoleLine(msg, type);
             });
-            ipcRenderer.on('bot-status', (event, running) => updateBotStatus(running));
+            try {
+                const ver = require('./package.json').version;
+                const chip = document.getElementById('homeVersionChip');
+                if (chip && ver) chip.textContent = 'v' + ver;
+            } catch (e) {}
+            ipcRenderer.on('win-maximized', (event, maximized) => {
+                document.body.classList.toggle('win-maximized', Boolean(maximized));
+                const b = document.getElementById('winMaxBtn');
+                if (b) b.title = maximized ? 'Restore' : 'Maximize';
+            });
+            ipcRenderer.on('bot-status-change', (event, data) => {
+                loadRunningBotsList();
+                renderDockProjects();
+                if (data && data.projectDir && data.projectDir !== currentProjectDir) return;
+                if (data && typeof data.running === 'boolean') {
+                    updateBotStatus(data.running);
+                    if (!data.running && data.code !== undefined && data.code !== null) {
+                        addConsoleLine(`[BOT] Proces zakończony (kod wyjścia: ${data.code})`, data.code === 0 ? 'info' : 'error');
+                    }
+                }
+            });
+            loadRunningBotsList();
         }
 
         // ═══════ TOAST NOTIFICATIONS ═══════
@@ -3189,7 +4453,7 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
             toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message}`;
             container.appendChild(toast);
 
@@ -3200,18 +4464,30 @@
         }
 
         // ═══════ CONSOLE ═══════
-        function toggleConsole() {
+        function toggleConsole(force) {
             const panel = document.getElementById('bottomPanel');
-            consoleOpen = !consoleOpen;
+            consoleOpen = typeof force === 'boolean' ? force : !consoleOpen;
             panel.classList.toggle('open', consoleOpen);
+            if (consoleOpen) {
+                if (panel.dataset.userHeight) panel.style.height = panel.dataset.userHeight;
+            } else {
+                if (panel.style.height) panel.dataset.userHeight = panel.style.height;
+                panel.style.height = '';
+            }
+            setTimeout(() => { resizeCanvasGrid(); drawWires(); }, 360);
         }
 
         function addConsoleLine(text, type = '') {
             const output = document.getElementById('consoleOutput');
+            if (!output) return;
             const line = document.createElement('div');
             line.className = `console-line ${type}`;
             const time = new Date().toLocaleTimeString('pl-PL');
-            line.innerHTML = `<span style="color:var(--text-muted)">[${time}]</span> ${escapeHTML(text)}`;
+            let content = text;
+            if (typeof content === 'object' && content !== null) {
+                content = content.message || JSON.stringify(content);
+            }
+            line.innerHTML = `<span style="color:var(--text-muted)">[${time}]</span> ${escapeHTML(String(content))}`;
             output.appendChild(line);
             output.scrollTop = output.scrollHeight;
         }
@@ -3231,17 +4507,21 @@
             const token = document.getElementById('botToken').value.trim();
 
             if (!isBotRunning) {
-                if (!token) {
-                    showToast('Wpisz token bota!', 'error');
-                    return;
-                }
                 await ipcRenderer.invoke('save-workspaces', rawWorkspacesData);
                 await ipcRenderer.invoke('generate-bot', token);
                 const res = await ipcRenderer.invoke('start-bot', token);
-                if (res.status === 'started' || res.status === 'already_running') {
+                if (res.ok || res.status === 'started' || res.status === 'already_running') {
                     updateBotStatus(true);
                     if (!consoleOpen) toggleConsole();
                     showToast('Bot uruchomiony!', 'success');
+                } else {
+                    if (res.needToken) {
+                        showToast(res.error || 'Wpisz token bota!', 'warning');
+                    } else {
+                        showToast(`Błąd uruchamiania: ${res.error || 'Nieznany błąd'}`, 'error');
+                    }
+                    addConsoleLine(`❌ ${res.error || 'Nie udało się uruchomić bota'}`, 'error');
+                    if (!consoleOpen) toggleConsole();
                 }
             } else {
                 await ipcRenderer.invoke('stop-bot');
@@ -3256,11 +4536,13 @@
             const dots = document.querySelectorAll('.console-dot');
 
             if (running) {
-                btn.innerHTML = '<span>⏹</span> Stop';
+                btn.innerHTML = '<svg class="ico"><use href="#i-stop"/></svg><span>Zatrzymaj</span>';
+                btn.title = 'Zatrzymaj bota (F5)';
                 btn.classList.add('running');
                 dots.forEach(d => d.classList.add('active'));
             } else {
-                btn.innerHTML = '<span>▶</span> Start';
+                btn.innerHTML = '<svg class="ico"><use href="#i-play"/></svg><span>Uruchom</span>';
+                btn.title = 'Uruchom bota (F5)';
                 btn.classList.remove('running');
                 dots.forEach(d => d.classList.remove('active'));
             }
@@ -3321,20 +4603,24 @@
                 return;
             }
 
+            const wsQuery = ((document.getElementById('wsSearchInput') || {}).value || '').trim().toLowerCase();
+            const wsMatches = (ws) => !wsQuery || (ws.info?.title || '').toLowerCase().includes(wsQuery);
+
             rawWorkspacesData.forEach((item, rootIdx) => {
                 if (item.workspaces && Array.isArray(item.workspaces)) {
+                    if (wsQuery && !item.workspaces.some(wsMatches)) return;
                     // FOLDER
                     const folderEl = document.createElement('div');
                     folderEl.className = 'folder-container';
 
                     const fHeader = document.createElement('div');
                     fHeader.className = 'folder-header';
-                    const isOpen = !item.info.collapsed;
+                    const isOpen = wsQuery ? true : !item.info.collapsed;
                     fHeader.innerHTML = `
-                        <span class="folder-arrow ${isOpen ? 'open' : ''}">▶</span>
-                        <span class="ws-icon">${isOpen ? '📂' : '📁'}</span>
-                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${item.info.title || 'Folder'}</span>
-                        <span class="ws-action-btn delete" title="Usuń folder" onclick="event.stopPropagation(); deleteWorkspaceFolder('${item.id}')">✕</span>
+                        <svg class="ico folder-arrow ${isOpen ? 'open' : ''}"><use href="#i-chevron"/></svg>
+                        <span class="folder-title">${escapeHTML(item.info.title || 'Folder')}</span>
+                        <span class="ws-action-btn delete folder-del" title="Usuń kategorię" onclick="event.stopPropagation(); deleteWorkspaceFolder('${item.id}')">✕</span>
+                        <span class="folder-add" title="Nowy workspace w tej kategorii" onclick="event.stopPropagation(); pendingFolderId='${item.id}'; openModal('modalNewWorkspace')"><svg class="ico"><use href="#i-plus"/></svg></span>
                     `;
 
                     // Drag & Drop do folderu
@@ -3372,7 +4658,7 @@
                             if (draggedId) moveWorkspaceIntoFolder(draggedId, item.id);
                         };
 
-                        item.workspaces.forEach(ws => {
+                        item.workspaces.filter(wsMatches).forEach(ws => {
                             wsList.appendChild(createWsItem(ws, item.id));
                         });
                         folderEl.appendChild(wsList);
@@ -3380,7 +4666,7 @@
                     container.appendChild(folderEl);
                 } else {
                     // STANDALONE WORKSPACE
-                    container.appendChild(createWsItem(item, null));
+                    if (wsMatches(item)) container.appendChild(createWsItem(item, null));
                 }
             });
 
@@ -3409,11 +4695,11 @@
             wsEl.draggable = true;
 
             wsEl.innerHTML = `
-                <span class="stat-dot" title="${isEnabled ? 'Aktywny w bocie (kliknij, aby wyłączyć)' : 'Wyłączony w bocie (kliknij, aby włączyć)'}"
-                      style="background: ${isEnabled ? 'var(--accent-green)' : 'var(--text-muted)'}; cursor: pointer; flex-shrink: 0;"
-                      onclick="event.stopPropagation(); toggleWorkspaceActive('${ws.id}')"></span>
-                <span class="ws-icon">📄</span>
-                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">${ws.info ? ws.info.title : 'Workspace'}</span>
+                <span class="ws-avatar" style="${wsAvatarStyle(ws)}">
+                    <span class="ws-status ${isEnabled ? 'on' : 'off'}" title="${isEnabled ? 'Aktywny w bocie (kliknij, aby wyłączyć)' : 'Wyłączony w bocie (kliknij, aby włączyć)'}"
+                          onclick="event.stopPropagation(); toggleWorkspaceActive('${ws.id}')"></span>
+                </span>
+                <span class="ws-title">${escapeHTML(ws.info ? ws.info.title : 'Workspace')}</span>
                 <div class="ws-actions" onclick="event.stopPropagation();">
                     <span class="ws-action-btn" title="Przenieś do folderu / na poziom główny" onclick="openMoveWorkspaceModal('${ws.id}')">📁</span>
                     <span class="ws-action-btn" title="Kopiuj kod tego workspace (JSON do schowka)" onclick="copyWorkspaceCode('${ws.id}')">📋</span>
@@ -3427,9 +4713,11 @@
                 e.dataTransfer.setData('text/plain', ws.id);
                 e.dataTransfer.effectAllowed = 'move';
                 wsEl.classList.add('dragging');
+                document.body.classList.add('ws-dragging');
             };
             wsEl.ondragend = () => {
                 wsEl.classList.remove('dragging');
+                document.body.classList.remove('ws-dragging');
                 document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
             };
             wsEl.ondragover = (e) => {
@@ -3771,7 +5059,7 @@
 
             loadedProjectPaths.forEach(projPath => {
                 const pName = projPath.split(/[\\/]/).filter(Boolean).pop() || 'Bot';
-                let initials = pName.split(/[\s-_]+/).map(w => w[0]).join('').toUpperCase().slice(0, 3);
+                let initials = pName.split(/[\s-_]+/).filter(Boolean).map(w => w[0]).join('-').toUpperCase().slice(0, 5);
                 if (!initials) initials = pName.slice(0, 2).toUpperCase();
 
                 const isActive = (currentProjectDir === projPath) && (document.getElementById('viewEditor')?.classList.contains('active'));
@@ -3860,7 +5148,7 @@
                     iconHtml = '<span class="dock-ws-emoji">🛡️</span>';
                 } else if (titleLower.includes('msg') || titleLower.includes('message') || titleLower.includes('wiadomość') || titleLower.includes('send')) {
                     iconHtml = '<span class="dock-ws-emoji">💬</span>';
-                } else if (titleLower.includes('bot') || titleLower.includes('mango')) {
+                } else if (titleLower.includes('bot') || titleLower.includes('pitaya') || titleLower.includes('mango')) {
                     iconHtml = '<span class="dock-ws-emoji">🤖</span>';
                 } else if (titleLower.includes('start')) {
                     iconHtml = '<span class="dock-ws-emoji">🚀</span>';
@@ -3971,6 +5259,7 @@
             if (!ws) {
                 currentWorkspace = null;
                 document.getElementById('editorWsTitle').textContent = 'Brak otwartego kodu';
+                updateWorkspaceChrome();
                 renderCanvas();
                 renderDockWorkspaces();
                 renderWorkspacesTree();
@@ -3979,13 +5268,15 @@
 
             currentWorkspace = ws;
             selectedNodeIdx = null;
+            selectedNoteIdx = null;
 
             // Dodaj do listy otwartych kodów po boku
             if (!openWorkspaceIds.includes(ws.id)) {
                 openWorkspaceIds.push(ws.id);
             }
 
-            document.getElementById('editorWsTitle').textContent = `Workspace: ${currentWorkspace.info?.title || 'Bez nazwy'}`;
+            document.getElementById('editorWsTitle').textContent = currentWorkspace.info?.title || 'Bez nazwy';
+            updateWorkspaceChrome();
 
             renderDockWorkspaces();
             renderWorkspacesTree();
@@ -4298,27 +5589,43 @@
 
             // 1. RENDEROWANIE NOTATEK (Notes) z workspaces.json
             if (currentWorkspace.notes && Array.isArray(currentWorkspace.notes)) {
-                currentWorkspace.notes.forEach((note) => {
+                currentWorkspace.notes.forEach((note, nIdx) => {
                     const noteEl = document.createElement('div');
-                    noteEl.className = 'dbb-note';
+                    noteEl.className = `dbb-note ${selectedNoteIdx === nIdx ? 'selected' : ''}`;
+                    noteEl.id = `note_${nIdx}`;
                     noteEl.style.left = `${note.x}px`;
                     noteEl.style.top = `${note.y}px`;
                     noteEl.style.width = `${note.width || 400}px`;
                     noteEl.style.height = `${note.height || 200}px`;
                     if (note.color && note.color.trim()) {
-                        noteEl.style.borderColor = note.color;
-                        noteEl.style.background = `${note.color}0a`;
+                        noteEl.style.setProperty('--note-color', note.color);
                     }
                     const noteHeader = document.createElement('div');
                     noteHeader.className = 'dbb-note-header';
-                    if (note.color && note.color.trim()) noteHeader.style.color = note.color;
-                    noteHeader.innerHTML = `<span>📁 ${escapeHTML(note.title || 'Obszar')}</span>`;
+                    noteHeader.innerHTML = `<span>${escapeHTML(note.title || 'Sekcja')}</span>`;
+                    noteHeader.title = 'Kliknij, aby edytować sekcję. Przeciągnij, aby przesunąć.';
+                    noteHeader.addEventListener('mousedown', (e) => startNoteDrag(e, nIdx, 'move'));
+                    noteEl.appendChild(noteHeader);
+                    if (note.description) {
+                        const noteDesc = document.createElement('div');
+                        noteDesc.className = 'dbb-note-desc';
+                        noteDesc.textContent = note.description;
+                        noteEl.appendChild(noteDesc);
+                    }
+                    const noteResize = document.createElement('div');
+                    noteResize.className = 'dbb-note-resize';
+                    noteResize.title = 'Przeciągnij, aby zmienić rozmiar sekcji';
+                    noteResize.addEventListener('mousedown', (e) => startNoteDrag(e, nIdx, 'resize'));
+                    noteEl.appendChild(noteResize);
+                    container.appendChild(noteEl);
+                    return;
                     noteEl.appendChild(noteHeader);
                     container.appendChild(noteEl);
                 });
             }
 
             // 2. RENDEROWANIE BLOKÓW
+            const wsOutputIds = getWorkspaceOutputIds(currentWorkspace);
             currentWorkspace.blocks.forEach((block, idx) => {
                 try {
                     const blockDef = getBlockFullDef(block);
@@ -4332,46 +5639,56 @@
                     card.style.left = `${block.x}px`;
                     card.style.top = `${block.y}px`;
 
-                    if (block.width) {
-                        card.style.width = `${Math.max(240, block.width)}px`;
-                    } else {
-                        card.style.width = '280px';
+                    card.style.width = block.width ? `${Math.max(160, block.width)}px` : '260px';
+
+                    // Oblicz wymagana wysokość na podstawie liczby wejść, wyjść i pól options
+                    const countIn = (blockDef && blockDef.inputs) ? blockDef.inputs.length : Object.keys(block.inputs || {}).length;
+                    let countOut = (blockDef && blockDef.outputs) ? blockDef.outputs.length : Object.keys(block.outputs || {}).length;
+                    if (block.outputs) {
+                        Object.values(block.outputs).forEach(v => {
+                            if (Array.isArray(v) && v.length > 1) countOut += (v.length - 1);
+                        });
                     }
+                    const countOpts = (blockDef && blockDef.options) ? blockDef.options.length : Object.keys(block.options || {}).length;
+
+                    // Header (44px) + porty (każdy ~28px) lub opcje (każde pole tekstowe ~70px)
+                    const portsHeight = 26 + Math.max(countIn, countOut) * 19 + 16;
+                    const calculatedMinHeight = Math.max(60, portsHeight);
 
                     if (block.collapsed) {
                         card.style.height = 'auto';
                         card.style.maxHeight = 'none';
                     } else if (block.height) {
-                        card.style.height = `${Math.max(120, block.height)}px`;
+                        // Zapisana wysokość to minimum — blok i tak rośnie, gdy treść jest większa (bez paska przewijania)
+                        card.style.height = 'auto';
+                        card.style.minHeight = `${Math.max(block.height, calculatedMinHeight)}px`;
                         card.style.maxHeight = 'none';
                     } else {
-                        // Domyślny maksymalny limit wysokości dla długich bloków (np. Create Permissions), aby nie rozciągały się w nieskończoność
-                        card.style.maxHeight = '420px';
+                        // Blok automatycznie powiększa się dokładnie o tyle ile ma wejść/wyjść/inputów
                         card.style.height = 'auto';
+                        card.style.minHeight = `${calculatedMinHeight}px`;
+                        card.style.maxHeight = 'none';
                     }
 
                     // Indywidualny kolor bloku (jeśli ustawiony w workspaces.json)
                     if (block.color && block.color.trim()) {
-                        card.style.borderColor = block.color;
-                        card.style.boxShadow = `0 0 15px ${block.color}33, var(--shadow-lg)`;
+                        card.style.setProperty('--block-color', block.color);
+                        card.classList.add('colored');
                     }
+                    if (block.lock) card.classList.add('locked');
 
                     const prettyTitle = blockDef ? blockDef.name : block.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
                     // HEADER
                     const header = document.createElement('div');
                     header.className = 'dbb-header';
-                    if (block.color && block.color.trim()) {
-                        header.style.background = `${block.color}22`;
-                    }
 
                     header.innerHTML = `
                         <div class="header-left">
-                            <span class="dbb-collapse-btn" title="${block.collapsed ? 'Rozwiń blok' : 'Zwiń blok'}" onclick="toggleCollapseBlock(event, ${idx})">${block.collapsed ? '▸' : '▾'}</span>
-                            <span class="header-cat-icon">${catIcon}</span>
-                            <span style="overflow:hidden; text-overflow:ellipsis;" title="${prettyTitle}">${prettyTitle}</span>
+                            <span class="dbb-header-title" title="${escapeHTML(blockDef && blockDef.description ? blockDef.description : prettyTitle)}">${escapeHTML(prettyTitle)}</span>
                         </div>
                         <div class="collapsed-ports" id="collapsed_ports_${idx}"></div>
+                        <span class="dbb-block-id">#${idx + 1}</span>
                         <span class="dbb-close-btn" onclick="deleteBlock(event, ${idx})" title="Usuń blok">✕</span>
                     `;
 
@@ -4409,9 +5726,6 @@
                     const centerScroll = document.createElement('div');
                     centerScroll.className = 'dbb-center-scroll';
 
-                    centerScroll.addEventListener('wheel', (e) => {
-                        e.stopPropagation();
-                    }, { passive: false });
 
                     centerScroll.addEventListener('scroll', () => {
                         drawWires();
@@ -4430,6 +5744,15 @@
                                 optList.push({ id: savedKey, name: savedKey, type: typeof block.options[savedKey] === 'boolean' ? 'CHECKBOX' : 'TEXT' });
                             }
                         });
+                    }
+
+                    // Długie bloki (np. uprawnienia): opcje w kilku kolumnach zamiast jednej bardzo długiej
+                    const optCols = optList.length > 20 ? 3 : (optList.length > 10 ? 2 : 1);
+                    if (optCols > 1) {
+                        optionsBox.classList.add('grid');
+                        optionsBox.style.gridTemplateColumns = `repeat(${optCols}, minmax(0, 1fr))`;
+                        const minW = optCols * 165 + 230;
+                        if (parseInt(card.style.width, 10) < minW) card.style.width = `${minW}px`;
                     }
 
                     if (optList.length > 0) {
@@ -4483,9 +5806,12 @@
                                 }
 
                                 sel.value = (block.options && block.options[opt.id] !== undefined) ? block.options[opt.id] : (opt.defaultValue || '');
+                                const markDefault = () => optRow.classList.toggle('is-default', sel.selectedIndex <= 0);
+                                markDefault();
                                 sel.onchange = (e) => {
                                     if (!block.options) block.options = {};
                                     block.options[opt.id] = e.target.value;
+                                    markDefault();
                                 };
                                 optRow.appendChild(sel);
                             } else if (optType === 'CHECKBOX') {
@@ -4498,8 +5824,8 @@
                                     if (!block.options) block.options = {};
                                     block.options[opt.id] = e.target.checked;
                                 };
+                                chk.className = 'dbb-toggle';
                                 chkLabel.appendChild(chk);
-                                chkLabel.appendChild(document.createTextNode('Włączone'));
                                 optRow.appendChild(chkLabel);
                             } else if (optType === 'COLOR') {
                                 const inp = document.createElement('input');
@@ -4531,7 +5857,7 @@
 
                                 const autoGrow = () => {
                                     txtArea.style.height = 'auto';
-                                    txtArea.style.height = Math.max(54, txtArea.scrollHeight) + 'px';
+                                    txtArea.style.height = Math.max(28, txtArea.scrollHeight + 2) + 'px';
                                 };
                                 setTimeout(autoGrow, 10);
 
@@ -4561,14 +5887,48 @@
                     const inputKeys = new Set(Object.keys(block.inputs || {}));
                     if (blockDef && blockDef.inputs) blockDef.inputs.forEach(i => inputKeys.add(i.id));
 
+                    const expandedInputs = [];
                     inputKeys.forEach(key => {
-                        const portWrapper = buildPort(key, idx, false, blockDef);
-                        portWrapper.addEventListener('mouseup', (e) => {
+                        const inDef = (blockDef && Array.isArray(blockDef.inputs)) ? blockDef.inputs.find(i => i.id === key) : null;
+                        const saved = block.inputs ? block.inputs[key] : undefined;
+                        if ((inDef && inDef.multiInput) || (Array.isArray(saved) && saved.length > 1)) {
+                            const arr = Array.isArray(saved) ? saved : (saved ? [saved] : []);
+                            const used = arr.filter(Boolean).length;
+                            const count = Math.max(arr.length, used) + 1;
+                            for (let k = 0; k < count; k++) expandedInputs.push({ key, sub: k, multi: true });
+                        } else {
+                            expandedInputs.push({ key, sub: 0, multi: false });
+                        }
+                    });
+
+                    expandedInputs.forEach(({ key, sub, multi }) => {
+                        const portWrapper = buildPort(key, idx, false, blockDef, sub, multi);
+                        {
+                            const saved = block.inputs ? block.inputs[key] : undefined;
+                            const wid = Array.isArray(saved) ? saved[sub] : (sub === 0 ? saved : undefined);
+                            if (typeof wid === 'string' && wid && !wsOutputIds.has(wid)) {
+                                portWrapper.classList.add('dangling');
+                                portWrapper.title = 'Zerwany kabel — blok źródłowy został usunięty. Podłącz wejście ponownie albo użyj „Usuń zerwane kable”.';
+                            }
+                        }
+
+                        // Kończenie połączenia: działa ZARÓWNO na puszczenie (mouseup/drag) jak i na drugie kliknięcie (click)
+                        const handleConnectFinish = (e) => {
                             if (connectingWire && connectingWire.type === 'output') {
                                 e.stopPropagation();
-                                finishConnectingWire(connectingWire.blockIdx, connectingWire.portKey, idx, key, connectingWire.outSubIdx || 0);
+                                finishConnectingWire(connectingWire.blockIdx, connectingWire.portKey, idx, key, connectingWire.outSubIdx || 0, multi ? sub : null);
                             }
+                        };
+                        portWrapper.addEventListener('mouseup', handleConnectFinish);
+                        portWrapper.addEventListener('click', handleConnectFinish);
+
+                        portWrapper.addEventListener('mouseenter', () => {
+                            if (connectingWire) portWrapper.classList.add('wire-target-hover');
                         });
+                        portWrapper.addEventListener('mouseleave', () => {
+                            portWrapper.classList.remove('wire-target-hover');
+                        });
+
                         leftPorts.appendChild(portWrapper);
                     });
 
@@ -4595,11 +5955,17 @@
 
                             for (let outSubIdx = 0; outSubIdx < count; outSubIdx++) {
                                 const subPortWrapper = buildPort(key, idx, true, blockDef, outSubIdx, count > 1);
-                                const dot = subPortWrapper.querySelector('.port-dot');
-                                dot.addEventListener('mousedown', (e) => {
+                                const handleStartOut = (e) => {
+                                    if (e.target.classList.contains('port-remove-btn')) return;
                                     e.stopPropagation();
-                                    startConnectingWire(idx, key, isAction, outSubIdx);
-                                });
+                                    // Jeśli już łączymy ten sam port -> anuluj
+                                    if (connectingWire && connectingWire.blockIdx === idx && connectingWire.portKey === key && connectingWire.outSubIdx === outSubIdx) {
+                                        cancelConnectingWire();
+                                        return;
+                                    }
+                                    startConnectingWire(idx, key, isAction, outSubIdx, subPortWrapper);
+                                };
+                                subPortWrapper.addEventListener('mousedown', handleStartOut);
                                 rightPorts.appendChild(subPortWrapper);
                             }
 
@@ -4616,11 +5982,15 @@
                         } else {
                             // Zwykłe wyjście pojedyncze
                             const portWrapper = buildPort(key, idx, true, blockDef);
-                            const dot = portWrapper.querySelector('.port-dot');
-                            dot.addEventListener('mousedown', (e) => {
+                            const handleStartOutSingle = (e) => {
                                 e.stopPropagation();
-                                startConnectingWire(idx, key, isAction, 0);
-                            });
+                                if (connectingWire && connectingWire.blockIdx === idx && connectingWire.portKey === key) {
+                                    cancelConnectingWire();
+                                    return;
+                                }
+                                startConnectingWire(idx, key, isAction, 0, portWrapper);
+                            };
+                            portWrapper.addEventListener('mousedown', handleStartOutSingle);
                             rightPorts.appendChild(portWrapper);
                         }
                     });
@@ -4685,8 +6055,11 @@
                         e.stopPropagation();
 
                         selectedNodeIdx = idx;
+                        clearNoteSelection();
                         document.querySelectorAll('.dbb-card').forEach(c => c.classList.remove('selected'));
                         card.classList.add('selected');
+                        renderInfoPanel();
+                        if (block.lock) return;
 
                         const areaRect = document.getElementById('canvasArea').getBoundingClientRect();
                         isDraggingBlock = true;
@@ -4704,6 +6077,7 @@
             requestAnimationFrame(drawWires);
             updateStats();
             updateMinimap();
+            renderInfoPanel();
         }
 
         // ZWIJANIE / ROZWIJANIE BLOKU
@@ -4748,6 +6122,11 @@
             if (!block.options) block.options = {};
             if (block.options[optKey] === undefined) {
                 block.options[optKey] = "";
+            }
+
+            // Automatycznie powiększ wysokość bloku o wysokość nowego wejścia/wyjścia i pola tekstowego (~75px)
+            if (block.height) {
+                block.height = Math.round(block.height + 75);
             }
 
             renderCanvas();
@@ -4807,12 +6186,9 @@
         }
 
         function buildPort(key, blockIdx, isOutput, blockDef, outSubIdx = 0, showSubIndex = false) {
-            const isAction = key.toLowerCase().includes('action');
-            let colorClass = isAction ? (isOutput ? 'action-out' : 'action') : 'green';
-            if (['server', 'guild'].some(k => key.toLowerCase().includes(k))) colorClass = 'blue';
-            else if (['user', 'member'].some(k => key.toLowerCase().includes(k))) colorClass = 'cyan';
-            else if (['channel', 'thread'].some(k => key.toLowerCase().includes(k))) colorClass = 'blue';
-            else if (['interaction', 'command'].some(k => key.toLowerCase().includes(k))) colorClass = 'orange';
+            const portType = getPortType(blockDef, key, isOutput);
+            const isAction = portType === 'action';
+            const colorClass = isAction ? (isOutput ? 'action-out' : 'action') : `t-${portType}`;
 
             let portName = key;
             if (blockDef) {
@@ -4830,11 +6206,18 @@
                 portWrapper.dataset.subIdx = outSubIdx;
             } else {
                 portWrapper.dataset.inputKey = key;
+                portWrapper.dataset.subIdx = outSubIdx;
             }
             portWrapper.dataset.blockIdx = blockIdx;
+            portWrapper.dataset.portType = portType;
+            {
+                const portDefs = blockDef ? (isOutput ? blockDef.outputs : blockDef.inputs) : null;
+                const pd = Array.isArray(portDefs) ? portDefs.find(p => p.id === key) : null;
+                if (pd && pd.description) portWrapper.title = pd.description;
+            }
 
             if (isOutput) {
-                const displayName = showSubIndex ? `${portName} ${outSubIdx + 1}` : portName;
+                const displayName = showSubIndex ? `<span class="port-num">#${outSubIdx + 1}</span> ${portName}` : portName;
                 const removeBtnHtml = showSubIndex ? `<span class="port-remove-btn" title="Usuń ten port" onclick="event.stopPropagation(); removeMultiOutputPort(${blockIdx}, '${key}', ${outSubIdx})">✕</span>` : '';
                 portWrapper.innerHTML = `
                     ${removeBtnHtml}
@@ -4844,7 +6227,7 @@
             } else {
                 portWrapper.innerHTML = `
                     <span class="port-dot ${colorClass}"></span>
-                    <span>${portName}</span>
+                    <span>${portName}${showSubIndex ? ` <span class="port-num">#${outSubIdx + 1}</span>` : ''}</span>
                 `;
             }
 
@@ -4931,10 +6314,10 @@
                 if (!targetBlock.inputs) return;
                 Object.entries(targetBlock.inputs).forEach(([inKey, inVal]) => {
                     const idsToMatch = Array.isArray(inVal) ? inVal : [inVal];
-                    idsToMatch.forEach(wireId => {
+                    idsToMatch.forEach((wireId, inSubIdx) => {
                         if (typeof wireId === 'string' && outputIdMap.has(wireId)) {
                             const source = outputIdMap.get(wireId);
-                            renderWire(source.bIdx, source.outKey, targetIdx, inKey, wireId, source.subIdx || 0);
+                            renderWire(source.bIdx, source.outKey, targetIdx, inKey, wireId, source.subIdx || 0, inSubIdx);
                         }
                     });
                 });
@@ -4945,14 +6328,14 @@
             }
         }
 
-        function renderWire(sourceIdx, outKey, targetIdx, inKey, wireId, outSubIdx = 0) {
+        function renderWire(sourceIdx, outKey, targetIdx, inKey, wireId, outSubIdx = 0, inSubIdx = 0) {
             const svg = document.getElementById('wiresSvg');
             const sourceCard = document.getElementById(`block_${sourceIdx}`);
             const targetCard = document.getElementById(`block_${targetIdx}`);
             if (!sourceCard || !targetCard) return;
 
             const sourcePort = sourceCard.querySelector(`[data-output-key="${outKey}"][data-sub-idx="${outSubIdx}"] .port-dot`) || sourceCard.querySelector(`[data-output-key="${outKey}"] .port-dot`);
-            const targetPort = targetCard.querySelector(`[data-input-key="${inKey}"] .port-dot`);
+            const targetPort = targetCard.querySelector(`[data-input-key="${inKey}"][data-sub-idx="${inSubIdx}"] .port-dot`) || targetCard.querySelector(`[data-input-key="${inKey}"] .port-dot`);
 
             const p1 = getPortCenterInCanvas(sourcePort, true, sourceCard);
             const p2 = getPortCenterInCanvas(targetPort, false, targetCard);
@@ -4960,8 +6343,9 @@
             const dx = Math.max(60, Math.abs(p2.x - p1.x) * 0.5);
             const pathData = `M ${p1.x} ${p1.y} C ${p1.x + dx} ${p1.y}, ${p2.x - dx} ${p2.y}, ${p2.x} ${p2.y}`;
 
-            const isAction = outKey.toLowerCase().includes('action') || inKey.toLowerCase().includes('action');
-            const color = isAction ? 'var(--wire-action)' : 'var(--wire-data)';
+            const srcWrap = sourceCard.querySelector(`[data-output-key="${outKey}"]`);
+            const wireType = (srcWrap && srcWrap.dataset.portType) || 'unspecified';
+            const color = `var(--port-${PORT_TYPE_COLORS[wireType] ? wireType : 'unspecified'})`;
 
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', pathData);
@@ -4998,11 +6382,39 @@
             updateStats();
         }
 
-        function startConnectingWire(blockIdx, portKey, isAction, outSubIdx = 0) {
+        let activeSourceWrapper = null;
+        function cancelConnectingWire() {
+            if (activeSourceWrapper) {
+                activeSourceWrapper.classList.remove('connecting-source');
+                activeSourceWrapper = null;
+            }
+            document.querySelectorAll('.port-item').forEach(p => p.classList.remove('wire-target-hover', 'connecting-source'));
+            document.body.classList.remove('is-wiring');
+            connectingWire = null;
+            drawWires();
+        }
+
+        function startConnectingWire(blockIdx, portKey, isAction, outSubIdx = 0, portWrapperEl = null) {
+            cancelConnectingWire();
             const sourceCard = document.getElementById(`block_${blockIdx}`);
             const sourcePort = sourceCard?.querySelector(`[data-output-key="${portKey}"][data-sub-idx="${outSubIdx}"] .port-dot`) || sourceCard?.querySelector(`[data-output-key="${portKey}"] .port-dot`);
             const startPos = getPortCenterInCanvas(sourcePort, true, sourceCard);
-            connectingWire = { type: 'output', blockIdx, portKey, outSubIdx, isAction, currentX: startPos.x, currentY: startPos.y };
+            connectingWire = {
+                type: 'output',
+                blockIdx,
+                portKey,
+                outSubIdx,
+                isAction,
+                currentX: startPos.x,
+                currentY: startPos.y,
+                startTime: Date.now()
+            };
+            document.body.classList.add('is-wiring');
+            if (portWrapperEl) {
+                activeSourceWrapper = portWrapperEl;
+                activeSourceWrapper.classList.add('connecting-source');
+            }
+            drawWires();
         }
 
         function renderTemporaryWire() {
@@ -5019,15 +6431,16 @@
 
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', pathData);
-            path.setAttribute('stroke', connectingWire.isAction ? 'var(--wire-action)' : 'var(--wire-data)');
-            path.setAttribute('stroke-width', '2');
-            path.setAttribute('stroke-dasharray', '8,4');
+            path.setAttribute('stroke', connectingWire.isAction ? '#ff5e97' : '#00b894');
+            path.setAttribute('stroke-width', '3');
+            path.setAttribute('stroke-dasharray', '6,4');
             path.setAttribute('fill', 'none');
-            path.setAttribute('opacity', '0.7');
+            path.setAttribute('opacity', '0.9');
+            path.style.filter = 'drop-shadow(0 0 6px ' + (connectingWire.isAction ? 'rgba(255,94,151,0.8)' : 'rgba(0,184,148,0.8)') + ')';
             svg.appendChild(path);
         }
 
-        function finishConnectingWire(sourceIdx, outKey, targetIdx, inKey, outSubIdx = 0) {
+        function finishConnectingWire(sourceIdx, outKey, targetIdx, inKey, outSubIdx = 0, inSubIdx = null) {
             const sourceBlock = currentWorkspace.blocks[sourceIdx];
             const targetBlock = currentWorkspace.blocks[targetIdx];
             if (!sourceBlock || !targetBlock) return;
@@ -5047,14 +6460,19 @@
             }
 
             if (!targetBlock.inputs) targetBlock.inputs = {};
-            if (Array.isArray(targetBlock.inputs[inKey])) {
-                targetBlock.inputs[inKey].push(newWireId);
+            if (inSubIdx !== null || Array.isArray(targetBlock.inputs[inKey])) {
+                let arr = targetBlock.inputs[inKey];
+                if (!Array.isArray(arr)) arr = arr ? [arr] : [];
+                const k = inSubIdx === null ? arr.length : inSubIdx;
+                if (k < arr.length && !arr[k]) arr[k] = newWireId;
+                else arr.push(newWireId);
+                targetBlock.inputs[inKey] = arr;
             } else {
                 targetBlock.inputs[inKey] = newWireId;
             }
 
-            connectingWire = null;
-            drawWires();
+            cancelConnectingWire();
+            saveToDisk();
             updateStats();
         }
 
@@ -5065,7 +6483,18 @@
 
             canvasArea.addEventListener('mousedown', (e) => {
                 hideContextMenu();
+                if (e.button === 0 && connectingWire) {
+                    // Kliknięcie w pusty obszar podczas łączenia anuluje kabel
+                    cancelConnectingWire();
+                    return;
+                }
                 if (e.button === 0 && !isDraggingBlock && !isResizingBlock && !connectingWire) {
+                    if ((selectedNodeIdx !== null || selectedNoteIdx !== null) && !e.target.closest('.dbb-card') && !e.target.closest('.dbb-note-header')) {
+                        selectedNodeIdx = null;
+                        clearNoteSelection();
+                        document.querySelectorAll('.dbb-card.selected').forEach(c => c.classList.remove('selected'));
+                        renderInfoPanel();
+                    }
                     isPanning = true;
                     startPan.x = e.clientX - panX;
                     startPan.y = e.clientY - panY;
@@ -5127,8 +6556,34 @@
                             scheduleDrawWires();
                         } else if (connectingWire) {
                             const areaRect = canvasArea.getBoundingClientRect();
-                            connectingWire.currentX = (ev.clientX - areaRect.left - panX) / zoomScale;
-                            connectingWire.currentY = (ev.clientY - areaRect.top - panY) / zoomScale;
+                            let rawX = (ev.clientX - areaRect.left - panX) / zoomScale;
+                            let rawY = (ev.clientY - areaRect.top - panY) / zoomScale;
+
+                            // Magnetyczne przyciąganie (Magnetic Snap) w promieniu 45px do najbliższego portu wejściowego
+                            let closestPort = null;
+                            let minDist = 45;
+                            document.querySelectorAll('.dbb-ports-col.inputs .port-item').forEach(pItem => {
+                                const bIdx = parseInt(pItem.dataset.blockIdx, 10);
+                                if (bIdx === connectingWire.blockIdx) return; // Nie łącz do samego siebie
+                                const pDot = pItem.querySelector('.port-dot');
+                                const card = document.getElementById(`block_${bIdx}`);
+                                const center = getPortCenterInCanvas(pDot, false, card);
+                                const dist = Math.hypot(center.x - rawX, center.y - rawY);
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    closestPort = { el: pItem, x: center.x, y: center.y };
+                                }
+                            });
+
+                            document.querySelectorAll('.port-item').forEach(p => p.classList.remove('wire-target-hover'));
+                            if (closestPort) {
+                                rawX = closestPort.x;
+                                rawY = closestPort.y;
+                                closestPort.el.classList.add('wire-target-hover');
+                            }
+
+                            connectingWire.currentX = rawX;
+                            connectingWire.currentY = rawY;
                             scheduleDrawWires();
                         }
                     });
@@ -5151,13 +6606,18 @@
                 }
 
                 if (connectingWire) {
-                    connectingWire = null;
-                    drawWires();
+                    const elapsed = Date.now() - (connectingWire.startTime || 0);
+                    // Jeśli przeciągał i puścił w pustym miejscu po dłuższym czasie (>280ms) -> anuluj
+                    if (elapsed > 280) {
+                        cancelConnectingWire();
+                    }
+                    // W przeciwnym razie użytkownik kliknął (tryb Click-to-Connect) -> kabel czeka na kliknięcie celu!
                 }
 
                 if (wasDraggingOrResizing) {
                     updateMinimap();
                     drawWires();
+                    renderInfoPanel();
                 }
             });
 
@@ -5376,6 +6836,12 @@
             const list = document.getElementById('ctxList');
             list.innerHTML = '';
 
+            const noteItem = document.createElement('div');
+            noteItem.className = 'context-item context-item-note';
+            noteItem.innerHTML = `<span class="context-item-dot" style="background:var(--m-accent)"></span> Nowa sekcja (obszar)`;
+            noteItem.onclick = () => { addNoteAtPos(ctxMenuPos.x, ctxMenuPos.y); hideContextMenu(); };
+            list.appendChild(noteItem);
+
             const categories = {};
             blocks.forEach(b => {
                 if (!categories[b.category]) categories[b.category] = [];
@@ -5450,10 +6916,56 @@
             showToast(`Dodano: ${blockDef.name}`, 'success');
         }
 
+        // ═══════ KABLE: zbieranie ID i czyszczenie zerwanych połączeń ═══════
+        function collectWireIds(value, out = []) {
+            if (Array.isArray(value)) value.forEach(v => collectWireIds(v, out));
+            else if (typeof value === 'string' && value.trim()) out.push(value);
+            return out;
+        }
+
+        function stripWireIds(value, idSet) {
+            if (Array.isArray(value)) return value.map(v => Array.isArray(v) ? stripWireIds(v, idSet) : v).filter(v => !(typeof v === 'string' && idSet.has(v)));
+            return (typeof value === 'string' && idSet.has(value)) ? undefined : value;
+        }
+
+        function removeWireIdsFromWorkspace(ws, idSet) {
+            if (!ws || !ws.blocks || idSet.size === 0) return;
+            ws.blocks.forEach(b => {
+                ['inputs', 'outputs'].forEach(side => {
+                    if (!b[side]) return;
+                    Object.keys(b[side]).forEach(k => {
+                        const v = stripWireIds(b[side][k], idSet);
+                        if (v === undefined) delete b[side][k];
+                        else b[side][k] = v;
+                    });
+                });
+            });
+        }
+
+        function getWorkspaceOutputIds(ws) {
+            const set = new Set();
+            (ws && ws.blocks || []).forEach(b => Object.values(b.outputs || {}).forEach(v => collectWireIds(v).forEach(id => set.add(id))));
+            return set;
+        }
+
+        function cleanDanglingWires() {
+            if (!currentWorkspace || !currentWorkspace.blocks) { showToast('Otwórz workspace', 'info'); return; }
+            const outIds = getWorkspaceOutputIds(currentWorkspace);
+            const inIds = new Set();
+            currentWorkspace.blocks.forEach(b => Object.values(b.inputs || {}).forEach(v => collectWireIds(v).forEach(id => inIds.add(id))));
+            const dangling = new Set([...inIds].filter(id => !outIds.has(id)).concat([...outIds].filter(id => !inIds.has(id))));
+            removeWireIdsFromWorkspace(currentWorkspace, dangling);
+            renderCanvas();
+            showToast(dangling.size ? `Usunięto ${dangling.size} zerwanych kabli — zapisz workspace (Ctrl+S)` : 'Brak zerwanych kabli', dangling.size ? 'success' : 'info');
+        }
+
         function deleteBlock(e, index) {
             e.stopPropagation();
             if (currentWorkspace && currentWorkspace.blocks) {
+                const removed = currentWorkspace.blocks[index];
+                const ids = new Set(removed ? collectWireIds([Object.values(removed.inputs || {}), Object.values(removed.outputs || {})]) : []);
                 currentWorkspace.blocks.splice(index, 1);
+                removeWireIdsFromWorkspace(currentWorkspace, ids);
                 selectedNodeIdx = null;
                 renderCanvas();
                 showToast(`Usunięto blok`, 'info');
@@ -5484,7 +6996,10 @@
             await ipcRenderer.invoke('save-workspaces', rawWorkspacesData);
             const token = document.getElementById('botToken').value.trim();
             const res = await ipcRenderer.invoke('generate-bot', token);
-            if (res && res.ok) {
+            if (res && res.ok && res.keptOriginal) {
+                showToast('Zapisano workspaces.json (projekt używa oryginalnego bot.js z DBB)', 'success');
+                addConsoleLine('ℹ️ Ten projekt ma oryginalny bot.js z Discord Bot Buildera - nie został nadpisany.', 'info');
+            } else if (res && res.ok) {
                 showToast('Wygenerowano bot.js oraz zapisano workspaces.json!', 'success');
                 addConsoleLine('⚡ Pomyślnie wygenerowano plik bot.js gotowy do uruchomienia.', 'success');
             } else {
@@ -5508,14 +7023,39 @@
                     saveToDisk();
                 }
 
+                // F5 → start / stop bot
+                if (e.key === 'F5') {
+                    e.preventDefault();
+                    if (currentProjectDir) toggleBotRun();
+                }
+
+                // Alt+B → refresh blocks
+                if (e.altKey && (e.key === 'b' || e.key === 'B')) {
+                    e.preventDefault();
+                    refreshBlocks();
+                }
+
+                const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+
+                if (e.key === 'Delete' && selectedNoteIdx !== null && !typing && currentWorkspace?.notes) {
+                    e.preventDefault();
+                    currentWorkspace.notes.splice(selectedNoteIdx, 1);
+                    selectedNoteIdx = null;
+                    renderCanvas();
+                }
+
                 // Delete → remove selected block
-                if (e.key === 'Delete' && selectedNodeIdx !== null) {
+                if (e.key === 'Delete' && selectedNodeIdx !== null && !typing) {
                     e.preventDefault();
                     deleteBlock(e, selectedNodeIdx);
                 }
 
                 // Escape → deselect / close context menu
                 if (e.key === 'Escape') {
+                    if (connectingWire) {
+                        cancelConnectingWire();
+                        return;
+                    }
                     hideContextMenu();
                     selectedNodeIdx = null;
                     document.querySelectorAll('.dbb-card').forEach(c => c.classList.remove('selected'));
@@ -5621,6 +7161,7 @@
 
         // ═══════ VIEW & MODAL MANAGEMENT ═══════
         function switchView(viewName) {
+            setTimeout(updateWindowTitle, 0);
             const homeView = document.getElementById('viewHome');
             const editorView = document.getElementById('viewEditor');
             const dockHome = document.getElementById('dockBtnHome');
@@ -5756,7 +7297,7 @@
             sel.innerHTML = '';
             try {
                 const data = await ipcRenderer.invoke('get-projects');
-                (data.list || ['Mango Bot']).forEach(p => {
+                (data.list || ['Pitaya Bot']).forEach(p => {
                     const opt = document.createElement('option');
                     opt.value = p;
                     opt.textContent = p;
@@ -5799,7 +7340,10 @@
                 blocks: [],
                 notes: []
             };
-            rawWorkspacesData.push(newWs);
+            const targetFolder = pendingFolderId ? rawWorkspacesData.find(f => f.id === pendingFolderId && Array.isArray(f.workspaces)) : null;
+            pendingFolderId = null;
+            if (targetFolder) targetFolder.workspaces.push(newWs);
+            else rawWorkspacesData.push(newWs);
             renderWorkspacesTree();
             switchWorkspace(newWs);
             saveToDisk();
@@ -5899,12 +7443,15 @@
             }
         }
 
+        let recentRenderId = 0;
         async function loadRecentProjectsUI() {
             const grid = document.getElementById('recentProjectsGrid');
             if (!grid) return;
-            grid.innerHTML = '';
+            const renderId = ++recentRenderId;
             try {
                 const data = await ipcRenderer.invoke('get-projects');
+                if (renderId !== recentRenderId) return;
+                grid.innerHTML = '';
                 const recent = data.recent || [];
                 if (recent.length === 0) {
                     grid.innerHTML = '<div style="color:#8c909e; font-size:12px; grid-column:1/-1;">Brak projektów na liście. Kliknij "New Project" lub "Open Project".</div>';
@@ -5916,11 +7463,13 @@
                     card.style.position = 'relative';
                     card.onclick = () => selectAndOpenProject(proj.path);
                     card.innerHTML = `
-                        <div class="recent-avatar" style="background: ${proj.color || '#5865f2'};">
+                        <div class="recent-avatar" style="background: ${proj.color || '#ff9f1c'};">
                             ${proj.initials || proj.name.slice(0, 2).toUpperCase()}
                         </div>
-                        <div class="recent-name" title="${proj.name}">${proj.name}</div>
-                        <div class="recent-workspaces-badge">${proj.wsCount || 0} workspaces</div>
+                        <div class="recent-meta">
+                            <div class="recent-name" title="${escapeHTML(proj.path)}">${escapeHTML(proj.name)}</div>
+                            <div class="recent-workspaces-badge">${proj.wsCount || 0} workspace'ów</div>
+                        </div>
                         <span class="remove-recent-btn" title="Usuń z listy" onclick="removeRecentProject(event, '${escapeHTML(proj.path)}')">✕</span>
                     `;
                     grid.appendChild(card);
