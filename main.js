@@ -1564,7 +1564,7 @@ ipcMain.handle('check-app-update', async () => {
         // 1. Sprawdź najnowszy release z GitHub API
         let release = null;
         try {
-            release = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Mango-Bot-Builder/releases/latest');
+            release = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Pitayas-Bot-Builder/releases/latest');
         } catch(e) {
             // Jeśli brak release'ów na GitHubie, sprawdź commits
         }
@@ -1572,7 +1572,7 @@ ipcMain.handle('check-app-update', async () => {
         // 2. Sprawdź commits z repozytorium
         let latestCommit = null;
         try {
-            const commits = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Mango-Bot-Builder/commits?per_page=1');
+            const commits = await fetchJsonFromUrl('https://api.github.com/repos/MangoLabz/Pitayas-Bot-Builder/commits?per_page=1');
             if (Array.isArray(commits) && commits.length > 0) {
                 latestCommit = {
                     sha: commits[0].sha.substring(0, 7),

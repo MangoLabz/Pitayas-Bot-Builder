@@ -1,6 +1,6 @@
 {
   "name": "pitaya-bot-builder",
-  "version": "1.1.0",
+  "version": "0.1.0-beta",
   "description": "Pitaya Bot Builder — wizualny kreator botów Discord dla Linuxa",
   "main": "main.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "name": "Pitayas",
     "email": "inbox@rakunek.com"
   },
-  "homepage": "https://github.com/MangoLabz/Mango-Bot-Builder",
+  "homepage": "https://github.com/MangoLabz/Pitayas-Bot-Builder",
   "desktopName": "pitaya-bot-builder.desktop",
   "build": {
     "appId": "com.pitayas.pbb",
@@ -49,8 +49,8 @@
       "maintainer": "Pitayas <inbox@rakunek.com>",
       "vendor": "Pitayas",
       "target": [
-        "rpm",
-        "AppImage"
+        "AppImage",
+        "rpm"
       ],
       "executableArgs": [
         "--no-sandbox"
@@ -77,10 +77,11 @@
       ],
       "fpm": [
         "--replaces=mango-bot-builder"
-      ]
+      ],
+      "artifactName": "pitaya-bot-builder-${version}.${arch}.${ext}"
     },
     "appImage": {
-      "artifactName": "PBB-${version}-${arch}.AppImage"
+      "artifactName": "PBB-${version}-${arch}.${ext}"
     }
   }
 }
